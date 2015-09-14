@@ -4,7 +4,7 @@ SERVER="192.168.2.3:8080"
 # le numéro de l IDX dans la liste des peripheriques
 DHTIDX="18"
 #DHTPIN
-# LE GPIO ou est connecte le DHT11
+# LE GPIO ou est connecte le DHT22
 DHTPIN="17"
 
 # si vous avez un DHT22 modifiez plus bas sur la ligne Adafruit_DHT 11 par Adafruit_DHT 22
