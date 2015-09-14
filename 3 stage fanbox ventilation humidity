@@ -8,10 +8,10 @@
     FAN_MAX_TIME = 20                   --  maximum amount of sample cycles the fan can be on,
                                         -- in case we never reach the target humidity
     TARGET_OFFSET = 2                   -- ventilator goes off if target+offset is reached
-    FAN_NAME = 'Ventilator 2'           -- exact device name of the switch turning on/off the ventilator 2 (itho fan box stand 2)
-    FAN_NAME2 = 'Ventilator 3'           -- exact device name of the switch turning on/off the ventilator 3 (itho fan box stand 3)
-    FAN_NAME3 = 'Ventilator 4'           -- exact device name of the switch turning on/off the ventilator 4 (additional bathroom fan)
-    SENSOR_NAME = 'Badkamer'     -- exact device name of the humidity sensor
+    FAN_NAME = 'Ventilator 1'           -- exact device name of the switch turning on/off the ventilator 1
+    FAN_NAME2 = 'Ventilator 2'           -- exact device name of the switch turning on/off the ventilator 2
+    FAN_NAME3 = 'Ventilator 3'           -- exact device name of the switch turning on/off the ventilator 3
+    SENSOR_NAME = 'Badkamertemperatuur'     -- exact device name of the humidity sensor
 
     TEST_MODE = false                   -- when true TEST_MODE_HUMVAR is used instead of the real sensor
     TEST_MODE_HUMVAR = 'testHumidity'   -- fake humidity value, give it a test value in domoticz/uservars
