@@ -3,8 +3,8 @@
     -- declare some constants
     -- adjust to your specific situation
     SAMPLE_INTERVAL = 5                 -- time in minutes when a the script logic will happen
-    FAN_DELTA_TRIGGER = 3               -- rise in humidity needed for a bath that will trigger the fan
-    FAN_DELTA_TRIGGER2 = 6               -- rise in humidity needed for a shower that will trigger the fan
+    FAN_DELTA_TRIGGER = 6               -- rise in humidity needed for a bath that will trigger the fan
+    FAN_DELTA_TRIGGER2 = 3               -- rise in humidity needed for a shower that will trigger the fan
     FAN_MAX_TIME = 20                   --  maximum amount of sample cycles the fan can be on,
                                         -- in case we never reach the target humidity
     TARGET_OFFSET = 2                   -- ventilator goes off if target+offset is reached
@@ -88,14 +88,14 @@
         -- and store the current
         humidityTmin5 = current
      
-        if (otherdevices[FAN_NAME]=='Off' or (otherdevices[FAN_NAME]=='On' and fanFollowsProgram==0)) then
+        if (otherdevices[FAN_NAME2]=='Off' or (otherdevices[FAN_NAME2]=='On' and fanFollowsProgram==0)) then
             -- either the fan is off or it is on but the decrease program has not started
             -- in that latter case we start the program anyway. This could happen if someone turns on the ventilator
             -- manually because he/she is about to take a shower and doesn't like damp mirrors.
             -- I don't do this because the ventilator removes heat from the bathroom and I want this to happen
             -- as late as possible ;-)
      
-            if (fanFollowsProgram == 1 and otherdevices[FAN_NAME]=='Off') then
+            if (fanFollowsProgram == 1 and otherdevices[FAN_NAME2]=='Off') then
                 -- likely someone turned off the ventilator while the program was running
                 fanFollowsProgram = 0
             end
@@ -103,8 +103,8 @@
            -- see if we have to turn it on for the shower
             if (delta >= FAN_DELTA_TRIGGER2) then
                 -- time to start the extra fan
-                commandArray[FAN_NAME] = 'On'
-                commandArray[FAN_NAME2] = 'On'
+                commandArray[FAN_NAME] = 'Off'
+                commandArray[FAN_NAME2] = 'Off'
                 commandArray[FAN_NAME3] = 'On'
                 targetFanOffHumidity = target
      
@@ -125,8 +125,9 @@
             -- see if we have to turn it on for the bath
             if (delta >= FAN_DELTA_TRIGGER) then
                 -- time to start the fan
-                commandArray[FAN_NAME] = 'On'
-                commandArray[FAN_NAME2] = 'On'
+                commandArray[FAN_NAME] = 'Off'
+                commandArray[FAN_NAME2] = 'Off'
+                commandArray[FAN_NAME3] = 'On'
                 targetFanOffHumidity = target
      
                 fanFollowsProgram = 1
@@ -163,7 +164,7 @@
      
                 -- first see if it can be turned off
                 if (current <= targetFanOffHumidity or fanMaxTimer==0) then
-                    commandArray[FAN_NAME] = 'Off'
+                    commandArray[FAN_NAME] = 'On'
                     commandArray[FAN_NAME2] = 'Off'
                     commandArray[FAN_NAME3] = 'Off'
                     msg = ''
