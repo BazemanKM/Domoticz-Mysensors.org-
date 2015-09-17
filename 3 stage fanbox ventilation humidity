@@ -3,8 +3,9 @@
     -- declare some constants
     -- adjust to your specific situation
     SAMPLE_INTERVAL = 5                 -- time in minutes when a the script logic will happen
-    FAN_DELTA_TRIGGER = 6               -- rise in humidity needed for a bath that will trigger the fan
-    FAN_DELTA_TRIGGER2 = 3               -- rise in humidity needed for a shower that will trigger the fan
+    FAN_DELTA_TRIGGER = 5               -- rise in humidity needed for a bath that will trigger the fan
+    FAN_DELTA_TRIGGER2 = 10             -- rise in humidity needed for a shower that will trigger the fan
+    FAN_DELTA_TRIGGER3 = 15
     FAN_MAX_TIME = 20                   --  maximum amount of sample cycles the fan can be on,
                                         -- in case we never reach the target humidity
     TARGET_OFFSET = 2                   -- ventilator goes off if target+offset is reached
@@ -17,10 +18,6 @@
     TEST_MODE_HUMVAR = 'testHumidity'   -- fake humidity value, give it a test value in domoticz/uservars
     PRINT_MODE = false               -- when true wil print output to log and send notifications
      
-    if PRINT_MODE == true then
-    print('Fan control')
-    end
-     
     -- get the global variables:
     -- this script runs every minute, humCounter is used to create SAMPLE_INTERVAL periods
     humCounter = tonumber(uservariables['humCounter'])
@@ -29,6 +26,7 @@
     targetFanOffHumidity = tonumber(uservariables['targetFanOffHumidity'])  -- target humidity
     fanMaxTimer = tonumber(uservariables['fanMaxTimer'])
     fanFollowsProgram = tonumber(uservariables['fanFollowsProgram'])        -- marker indicating that the programm is runing for a bath
+    fan2FollowsProgram = tonumber(uservariables['fanFollowsProgram'])
     fan3FollowsProgram = tonumber(uservariables['fan3FollowsProgram'])        -- marker indicating that the  programm is runing for a shower
      
     target = 0 -- will hold the target humidity when the program starts
@@ -46,18 +44,6 @@
         return commandArray
     end
      
-    if PRINT_MODE == true then
-            print('Current humidity:' .. current)
-          print('targetFanOffHumidity:' .. targetFanOffHumidity)
-          print('humidityTmin5: ' .. humidityTmin5)
-          print('humidityTmin10: ' .. humidityTmin10)
-          print('fanMaxTimer: ' .. fanMaxTimer)
-          print('humCounter:' .. humCounter)
-          print('fanFollowsProgram:' .. fanFollowsProgram)
-          print('fan3FollowsProgram:' .. fan3FollowsProgram)
-    end
-     
-    -- increase cycle counter
     humCounter = humCounter + 1
      
     if (humCounter >= SAMPLE_INTERVAL) then
@@ -70,78 +56,66 @@
      
         humCounter = 0 -- reset the cycle counter
      
-        -- pick the lowest history value to calculate the delta
-        -- this also makes sure that two relative small deltas in the past 2*interval minutes are treated as one larger rise
-        -- and therefore will still trigger the ventilator
-        -- I don't want to use a longer interval instead because I want the ventilator to start as soon as possible
-        -- (so rather after 5 minutes instead of after 15 minutes because the mirrors in the bathroom become kinda useless ;-)
         delta = current - math.min(humidityTmin10, humidityTmin5)
-    if PRINT_MODE == true then
-       print('Delta: ' .. delta)
-    end
      
-        -- pick the lowest history value
         target = math.min(humidityTmin10, humidityTmin5) + TARGET_OFFSET
      
-        -- shift the previous measurements
         humidityTmin10 = humidityTmin5
-        -- and store the current
         humidityTmin5 = current
      
-        if (otherdevices[FAN_NAME2]=='Off' or (otherdevices[FAN_NAME2]=='On' and fanFollowsProgram==0)) then
-            -- either the fan is off or it is on but the decrease program has not started
-            -- in that latter case we start the program anyway. This could happen if someone turns on the ventilator
-            -- manually because he/she is about to take a shower and doesn't like damp mirrors.
-            -- I don't do this because the ventilator removes heat from the bathroom and I want this to happen
-            -- as late as possible ;-)
+        if (otherdevices[FAN_NAME]=='Off' or (otherdevices[FAN_NAME]=='On' and fanFollowsProgram==0)) then
      
-            if (fanFollowsProgram == 1 and otherdevices[FAN_NAME2]=='Off') then
-                -- likely someone turned off the ventilator while the program was running
-                fanFollowsProgram = 0
+            if (fan2FollowsProgram == 1 and otherdevices[FAN_NAME]=='Off') then
+                fan2FollowsProgram = 0
             end
      
-           -- see if we have to turn it on for the shower
+            if (delta >= FAN_DELTA_TRIGGER) then
+                commandArray[FAN_NAME] = 'On'
+                commandArray[FAN_NAME2] = 'Off'
+                commandArray[FAN_NAME3] = 'Off'
+                targetFanOffHumidity = target
+     
+                fanFollowsProgram = 1
+     
+                fanMaxTimer = FAN_MAX_TIME
+     
+        end
+        
+        if (otherdevices[FAN_NAME2]=='Off' or (otherdevices[FAN_NAME2]=='On' and fan2FollowsProgram==0)) then
+     
+            if (fan2FollowsProgram == 1 and otherdevices[FAN_NAME2]=='Off') then
+                fan2FollowsProgram = 0
+            end
+     
             if (delta >= FAN_DELTA_TRIGGER2) then
-                -- time to start the extra fan
+                commandArray[FAN_NAME] = 'Off'
+                commandArray[FAN_NAME2] = 'On'
+                commandArray[FAN_NAME3] = 'Off'
+                targetFanOffHumidity = target
+     
+                fan2FollowsProgram = 1
+     
+                fanMaxTimer = FAN_MAX_TIME
+     
+        end
+
+        if (otherdevices[FAN_NAME3]=='Off' or (otherdevices[FAN_NAME3]=='On' and fan3FollowsProgram==0)) then
+     
+            if (fan3FollowsProgram == 1 and otherdevices[FAN_NAME3]=='Off') then
+                fan3FollowsProgram = 0
+            end
+     
+            if (delta >= FAN_DELTA_TRIGGER2) then
                 commandArray[FAN_NAME] = 'Off'
                 commandArray[FAN_NAME2] = 'Off'
                 commandArray[FAN_NAME3] = 'On'
                 targetFanOffHumidity = target
      
-                fanFollowsProgram = 1
                 fan3FollowsProgram = 1
      
-                -- set the safety stop
                 fanMaxTimer = FAN_MAX_TIME
      
-             if PRINT_MODE == true then
-                print('Large rise in humidity. Turning on the exra vent. Delta: ' .. delta)
-                print('Target humidity for turning the ventilator: ' ..targetFanOffHumidity)
-                commandArray['SendNotification'] = 'Ventilator is on#The extra ventilator was activated at humidity level ' .. current .. '#0'
-             end
-            end
-
-
-            -- see if we have to turn it on for the bath
-            if (delta >= FAN_DELTA_TRIGGER) then
-                -- time to start the fan
-                commandArray[FAN_NAME] = 'Off'
-                commandArray[FAN_NAME2] = 'Off'
-                commandArray[FAN_NAME3] = 'On'
-                targetFanOffHumidity = target
-     
-                fanFollowsProgram = 1
-     
-                -- set the safety stop
-                fanMaxTimer = FAN_MAX_TIME
-     
-             if PRINT_MODE == true then
-                print('Rise in humidity. Turning on the vents. Delta: ' .. delta)
-                print('Target humidity for turning the ventilator: ' ..targetFanOffHumidity)
-                commandArray['SendNotification'] = 'Ventilator is on#The ventilator was activated at humidity level ' .. current .. '#0'
-             end
-            end
-
+        end    
      
         else
             if (fanMaxTimer > 0) then
@@ -149,16 +123,17 @@
                 fanMaxTimer = fanMaxTimer - 1
             end
      
-     
             if (fanFollowsProgram == 1) then -- not manually started
      
                 if (delta >= FAN_DELTA_TRIGGER) then
-                    -- ok, there is another FAN_DELTA_TRIGGER rise in humidity
-                    -- when this happen we reset the fanMaxTimer to a new count down
-                    -- because we have to ventilate a bit longer due to the extra humidity
-                    if PRINT_MODE == true then
-                print('Another large increase detected, resetting max timer. Delta: ' .. delta)
+                    fanMaxTimer = FAN_MAX_TIME
                 end
+     
+                if (delta >= FAN_DELTA_TRIGGER2) then
+                    fanMaxTimer = FAN_MAX_TIME
+                end
+                
+                if (delta >= FAN_DELTA_TRIGGER3) then
                     fanMaxTimer = FAN_MAX_TIME
                 end
      
@@ -181,14 +156,10 @@
                    end
                     end
      
-                if PRINT_MODE == true then
-                    print('Turning off the ventilator')
-                    msg = msg .. '\nTurning off the ventilator'
-                end
-     
                     targetFanOffHumidity = 0
                     fanMaxTimer = 0
                     fanFollowsProgram = 0
+                    fan2FollowsProgram = 0
                     fan3FollowsProgram = 0
                     -- reset history in this case.. we start all over
                     -- Tmin10 is still in the 'ventilator=On'-zone
@@ -206,17 +177,6 @@
             end
         end
      
-    if PRINT_MODE == true then
-        print('New values >>>>>>>>>>>')
-        print('humidityTmin5: ' .. humidityTmin5)
-        print('humidityTmin10: ' .. humidityTmin10)
-        print('fanMaxTimer: ' .. fanMaxTimer)
-        print('humCounter:' .. humCounter)
-        print('fanFollowsProgram:' .. fanFollowsProgram)
-        print('fan3FollowsProgram:' .. fan3FollowsProgram)
-        print('------ target: ' .. targetFanOffHumidity)
-    end
-     
     end
      
     -- save the globals
@@ -226,6 +186,7 @@
     commandArray['Variable:targetFanOffHumidity'] = tostring(targetFanOffHumidity)
     commandArray['Variable:fanMaxTimer'] = tostring(fanMaxTimer)
     commandArray['Variable:fanFollowsProgram'] = tostring(fanFollowsProgram)
+    commandArray['Variable:fanFollowsProgram'] = tostring(fan2FollowsProgram)
     commandArray['Variable:fan3FollowsProgram'] = tostring(fan3FollowsProgram)
      
     return commandArray
