@@ -38,7 +38,7 @@ FAN_MAX_TIME = 24                   --  maximum amount of sample cycles the fan 
                                     -- in case we never reach the target humidity
 TARGET_OFFSET = 2                   -- ventilator goes off if target+offset is reached 
                                     -- (maybe it takes too long to reach the true target due to wet towels etc)
-FAN_NAME = 'Ventilator 1'    -- exact device name of the switch turning on/off the ventilator
+FAN_NAME = 'Ventilator 3'    -- exact device name of the switch turning on/off the ventilator
 SENSOR_NAME = 'Badkamertemperatuur'     -- exact device name of the humidity sensor
  
 TEST_MODE = false                   -- when true TEST_MODE_HUMVAR is used instead of the real sensor
