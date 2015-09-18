@@ -1,5 +1,6 @@
 --[[
  
+Original script by: Danny (dannybloe):
 This script controls the humidity in a typical bathroom setting by detecting
 relative rises in humidity in a short period.
 Of course it requires a humidity sensor and a binary switch controlling a fan/ventilator.
@@ -25,6 +26,9 @@ or when it is switched on before the program starts.
  
 Along the lines it prints to the log and sends notifications
 but of course you can turn that off by removing those lines.
+
+Modification by Gertjan (BazemanKM):
+Added 3 stage fanbox ventilation controls.
  
 --]]
  
