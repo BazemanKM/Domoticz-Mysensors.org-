@@ -33,13 +33,18 @@ commandArray = {}
 -- declare some constants
 -- adjust to your specific situation
 SAMPLE_INTERVAL = 5                 -- time in minutes when a the script logic will happen
-FAN_DELTA_TRIGGER = 3               -- rise in humidity that will trigger the fan
+FAN_DELTA_TRIGGER1 = 3               -- rise in humidity that will trigger the fan
+FAN_DELTA_TRIGGER2 = 6               -- rise in humidity that will trigger the fan
+FAN_DELTA_TRIGGER3 = 9               -- rise in humidity that will trigger the fan
 FAN_MAX_TIME = 24                   --  maximum amount of sample cycles the fan can be on, 
                                     -- in case we never reach the target humidity
 TARGET_OFFSET = 2                   -- ventilator goes off if target+offset is reached 
                                     -- (maybe it takes too long to reach the true target due to wet towels etc)
-FAN_NAME = 'Ventilator 3'    -- exact device name of the switch turning on/off the ventilator
-SENSOR_NAME = 'Badkamertemperatuur'     -- exact device name of the humidity sensor
+FAN_NAME1 = 'Ventilator 1'    -- exact device name of the switch turning on/off the ventilator
+FAN_NAME2 = 'Ventilator 2'    -- exact device name of the switch turning on/off the ventilator
+FAN_NAME3 = 'Ventilator 3'    -- exact device name of the switch turning on/off the ventilator
+SENSOR_NAME1 = 'Badkamertemperatuur'     -- exact device name of the humidity sensor
+SENSOR_NAME2 = 'Keukentemperatuur'     -- exact device name of the humidity sensor
  
 TEST_MODE = false                   -- when true TEST_MODE_HUMVAR is used instead of the real sensor
 TEST_MODE_HUMVAR = 'testHumidity'   -- fake humidity value, give it a test value in domoticz/uservars
@@ -56,16 +61,16 @@ humidityTmin5 = tonumber(uservariables['humidityTmin5'])                -- young
 humidityTmin10 = tonumber(uservariables['humidityTmin10'])              -- oldest reading
 targetFanOffHumidity = tonumber(uservariables['targetFanOffHumidity'])  -- target humidity
 fanMaxTimer = tonumber(uservariables['fanMaxTimer'])
-fanFollowsProgram = tonumber(uservariables['fanFollowsProgram'])        -- marker indicating that the 
-                                                                        -- decrease program is started
- 
+fanFollowsProgram1 = tonumber(uservariables['fanFollowsProgram1'])        -- marker indicating that the decrease program is started
+fanFollowsProgram2 = tonumber(uservariables['fanFollowsProgram2'])        -- marker indicating that the decrease program is started
+fanFollowsProgram3 = tonumber(uservariables['fanFollowsProgram3'])        -- marker indicating that the decrease program is started
 target = 0 -- will hold the target humidity when the program starts
  
 -- get the current humidity value
 if (TEST_MODE) then
     current = tonumber(uservariables[TEST_MODE_HUMVAR])
 else
-    current = otherdevices_humidity[SENSOR_NAME]
+    current = otherdevices_humidity[SENSOR_NAME1]
 end
  
 -- check if the sensor is on or has some weird reading
