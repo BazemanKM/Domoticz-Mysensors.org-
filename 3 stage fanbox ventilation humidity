@@ -20,7 +20,6 @@
      
     current = otherdevices_humidity[SENSOR_NAME]
      
-    -- check if the sensor is on or has some weird reading
     if (current == 0 or current == nil) then
         print('current is 0 or nil. Skipping this reading')
         return commandArray
@@ -35,7 +34,7 @@
             humidityTmin10 = current
         end
      
-        humCounter = 0 -- reset the cycle counter
+        humCounter = 0
      
         delta = current - math.min(humidityTmin10, humidityTmin5)
      
