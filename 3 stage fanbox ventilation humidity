@@ -42,6 +42,53 @@
      
         humidityTmin10 = humidityTmin5
         humidityTmin5 = current
+        
+        if (otherdevices[FAN_NAME]=='Off' or (otherdevices[FAN_NAME]=='On' and fanFollowsProgram==0)) then
+ 
+        if (fanFollowsProgram == 1 and otherdevices[FAN_NAME]=='Off') then
+            fanFollowsProgram = 0
+        end
+ 
+        if (delta >= FAN_DELTA_TRIGGER) then
+            commandArray[FAN_NAME] = 'On'
+            targetFanOffHumidity = target
+ 
+            if (fanFollowsProgram == 1) then
+                print('Ventilator was already on but we start the de-humidifying program')
+            end
+ 
+            fanFollowsProgram = 1
+            fanMaxTimer = FAN_MAX_TIME
+ 
+        end
+ 
+    else
+        if (fanMaxTimer > 0) then
+            fanMaxTimer = fanMaxTimer - 1
+        end
+ 
+ 
+        if (fanFollowsProgram == 1) then -- not manually started
+ 
+            if (delta >= FAN_DELTA_TRIGGER) then
+                fanMaxTimer = FAN_MAX_TIME
+            end
+ 
+            if (current <= targetFanOffHumidity or fanMaxTimer==0) then
+                commandArray[FAN_NAME] = 'Off'
+ 
+                msg = ''
+ 
+                end
+ 
+                targetFanOffHumidity = 0
+                fanMaxTimer = 0
+                fanFollowsProgram = 0
+                humidityTmin10 = humidityTmin5
+				end
+            end
+        end
+    end
      
     end
      
