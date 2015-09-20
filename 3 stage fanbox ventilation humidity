@@ -90,7 +90,9 @@ if PRINT_MODE == true then
 		print('humidityTmin10: ' .. humidityTmin10)
 		print('fanMaxTimer: ' .. fanMaxTimer)
 		print('humCounter:' .. humCounter)
-		print('fanFollowsProgram:' .. fanFollowsProgram)
+		print('fanFollowsProgram1:' .. fanFollowsProgram1)
+                print('fanFollowsProgram2:' .. fanFollowsProgram2)
+                print('fanFollowsProgram3:' .. fanFollowsProgram3)
 end
  
 -- increase cycle counter
