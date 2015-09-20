@@ -124,29 +124,55 @@ end
     -- and store the current
     humidityTmin5 = current
  
-    if (otherdevices[FAN_NAME]=='Off' or (otherdevices[FAN_NAME]=='On' and fanFollowsProgram==0)) then
+    if (otherdevices[FAN_NAME1]=='Off' or (otherdevices[FAN_NAME1]=='On' and fanFollowsProgram1==0)) then
         -- either the fan is off or it is on but the decrease program has not started
         -- in that latter case we start the program anyway. This could happen if someone turns on the ventilator
         -- manually because he/she is about to take a shower and doesn't like damp mirrors.
         -- I don't do this because the ventilator removes heat from the bathroom and I want this to happen
         -- as late as possible ;-)
  
-        if (fanFollowsProgram == 1 and otherdevices[FAN_NAME]=='Off') then
+        if (fanFollowsProgram1 == 1 and otherdevices[FAN_NAME1]=='Off') then
             -- likely someone turned off the ventilator while the program was running
-            fanFollowsProgram = 0
+            fanFollowsProgram1 = 0
+        end
+        
+    if (otherdevices[FAN_NAME2]=='Off' or (otherdevices[FAN_NAME2]=='On' and fanFollowsProgram2==0)) then
+        -- either the fan is off or it is on but the decrease program has not started
+        -- in that latter case we start the program anyway. This could happen if someone turns on the ventilator
+        -- manually because he/she is about to take a shower and doesn't like damp mirrors.
+        -- I don't do this because the ventilator removes heat from the bathroom and I want this to happen
+        -- as late as possible ;-)
+ 
+        if (fanFollowsProgram2 == 1 and otherdevices[FAN_NAME2]=='Off') then
+            -- likely someone turned off the ventilator while the program was running
+            fanFollowsProgram2 = 0
+        end    
+    
+    if (otherdevices[FAN_NAME3]=='Off' or (otherdevices[FAN_NAME3]=='On' and fanFollowsProgram==0)) then
+        -- either the fan is off or it is on but the decrease program has not started
+        -- in that latter case we start the program anyway. This could happen if someone turns on the ventilator
+        -- manually because he/she is about to take a shower and doesn't like damp mirrors.
+        -- I don't do this because the ventilator removes heat from the bathroom and I want this to happen
+        -- as late as possible ;-)
+ 
+        if (fanFollowsProgram3 == 1 and otherdevices[FAN_NAME3]=='Off') then
+            -- likely someone turned off the ventilator while the program was running
+            fanFollowsProgram3 = 0
         end
  
         -- see if we have to turn it on
-        if (delta >= FAN_DELTA_TRIGGER) then
+        if (delta >= FAN_DELTA_TRIGGER1) then
             -- time to start the fan
-            commandArray[FAN_NAME] = 'On'
+            commandArray[FAN_NAME1] = 'On'
+            commandArray[FAN_NAME2] = 'Off'
+            commandArray[FAN_NAME3] = 'Off'
             targetFanOffHumidity = target
  
-            if (fanFollowsProgram == 1) then
-                print('Ventilator was already on but we start the de-humidifying program')
+            if (fanFollowsProgram1 == 1) then
+                print('Ventilator 1 was already on but we start the de-humidifying program')
             end
  
-            fanFollowsProgram = 1
+            fanFollowsProgram1 = 1
  
             -- set the safety stop
             fanMaxTimer = FAN_MAX_TIME
@@ -154,7 +180,53 @@ end
 			if PRINT_MODE == true then
             print('Rise in humidity. Turning on the vents. Delta: ' .. delta)
             print('Target humidity for turning the ventilator: ' ..targetFanOffHumidity)
-            commandArray['SendNotification'] = 'Ventilator is on#The ventilator was activated at humidity level ' .. current .. '#0'
+            commandArray['SendNotification'] = 'Ventilator 1 is on#The ventilator was activated at humidity level ' .. current .. '#0'
+			end
+        end
+        
+        if (delta >= FAN_DELTA_TRIGGER2) then
+            -- time to start the fan
+            commandArray[FAN_NAME1] = 'Off'
+            commandArray[FAN_NAME2] = 'On'
+            commandArray[FAN_NAME3] = 'Off'
+            targetFanOffHumidity = target
+ 
+            if (fanFollowsProgram2 == 1) then
+                print('Ventilator 2 was already on but we start the de-humidifying program')
+            end
+ 
+            fanFollowsProgram2 = 1
+ 
+            -- set the safety stop
+            fanMaxTimer = FAN_MAX_TIME
+ 
+			if PRINT_MODE == true then
+            print('Rise in humidity. Turning on the vents. Delta: ' .. delta)
+            print('Target humidity for turning the ventilator: ' ..targetFanOffHumidity)
+            commandArray['SendNotification'] = 'Ventilator 2 is on#The ventilator was activated at humidity level ' .. current .. '#0'
+			end
+        end
+        
+        if (delta >= FAN_DELTA_TRIGGER3) then
+            -- time to start the fan
+            commandArray[FAN_NAME1] = 'Off'
+            commandArray[FAN_NAME2] = 'Off'
+            commandArray[FAN_NAME3] = 'On'
+            targetFanOffHumidity = target
+ 
+            if (fanFollowsProgram3 == 1) then
+                print('Ventilator 3 was already on but we start the de-humidifying program')
+            end
+ 
+            fanFollowsProgram3 = 1
+ 
+            -- set the safety stop
+            fanMaxTimer = FAN_MAX_TIME
+ 
+			if PRINT_MODE == true then
+            print('Rise in humidity. Turning on the vents. Delta: ' .. delta)
+            print('Target humidity for turning the ventilator: ' ..targetFanOffHumidity)
+            commandArray['SendNotification'] = 'Ventilator 3 is on#The ventilator was activated at humidity level ' .. current .. '#0'
 			end
         end
  
@@ -165,10 +237,10 @@ end
         end
  
  
-        if (fanFollowsProgram == 1) then -- not manually started
+        if (fanFollowsProgram1 == 1) then -- not manually started
  
-            if (delta >= FAN_DELTA_TRIGGER) then
-                -- ok, there is another FAN_DELTA_TRIGGER rise in humidity
+            if (delta >= FAN_DELTA_TRIGGER1) then
+                -- ok, there is another FAN_DELTA_TRIGGER1 rise in humidity
                 -- when this happen we reset the fanMaxTimer to a new count down
                 -- because we have to ventilate a bit longer due to the extra humidity
                 if PRINT_MODE == true then
@@ -179,7 +251,9 @@ end
  
             -- first see if it can be turned off
             if (current <= targetFanOffHumidity or fanMaxTimer==0) then
-                commandArray[FAN_NAME] = 'Off'
+                commandArray[FAN_NAME1] = 'Off'
+                commandArray[FAN_NAME2] = 'Off'
+                commandArray[FAN_NAME3] = 'Off'
  
                 msg = ''
  
@@ -197,17 +271,125 @@ end
  
 				if PRINT_MODE == true then
                 print('Turning off the ventilator')
-                msg = msg .. '\nTurning off the ventilator'
+                msg = msg .. '\nTurning off ventilator 1'
 				end
  
                 targetFanOffHumidity = 0
                 fanMaxTimer = 0
-                fanFollowsProgram = 0
+                fanFollowsProgram1 = 0
                 -- reset history in this case.. we start all over
                 -- Tmin10 is still in the 'ventilator=On'-zone
                 humidityTmin10 = humidityTmin5
                  if PRINT_MODE == true then
-				commandArray['SendNotification'] = 'Ventilator is off#' .. msg .. '#0'
+				commandArray['SendNotification'] = 'Ventilator 1 is off#' .. msg .. '#0'
+				end
+ 
+            else
+                -- we haven't reached the target yet
+               if PRINT_MODE == true then
+			   print('Humidity delta: ' .. delta)
+			   end
+            end
+        end
+        
+        if (fanFollowsProgram2 == 1) then -- not manually started
+ 
+            if (delta >= FAN_DELTA_TRIGGER2) then
+                -- ok, there is another FAN_DELTA_TRIGGER2 rise in humidity
+                -- when this happen we reset the fanMaxTimer to a new count down
+                -- because we have to ventilate a bit longer due to the extra humidity
+                if PRINT_MODE == true then
+				print('Another large increase detected, resetting max timer. Delta: ' .. delta)
+				end
+                fanMaxTimer = FAN_MAX_TIME
+            end
+ 
+            -- first see if it can be turned off
+            if (current <= targetFanOffHumidity or fanMaxTimer==0) then
+                commandArray[FAN_NAME2] = 'Off'
+ 		commandArray[FAN_NAME3] = 'Off'
+ 		commandArray[FAN_NAME1] = 'On'
+                msg = ''
+ 
+                if (fanMaxTimer == 0 and current > targetFanOffHumidity) then
+                    msg = 'Target not reached but safety time-out is triggered.'
+                    if PRINT_MODE == true then
+					print(msg)
+					end
+                else
+                    msg = 'Target humidity reached'
+                    if PRINT_MODE == true then
+					print(msg)
+					end
+                end
+ 
+				if PRINT_MODE == true then
+                print('Turning off the ventilator')
+                msg = msg .. '\nTurning off ventilator 2'
+				end
+ 
+                targetFanOffHumidity = 0
+                fanMaxTimer = 0
+                fanFollowsProgram2 = 0
+                -- reset history in this case.. we start all over
+                -- Tmin10 is still in the 'ventilator=On'-zone
+                humidityTmin10 = humidityTmin5
+                 if PRINT_MODE == true then
+				commandArray['SendNotification'] = 'Ventilator 2 is off#' .. msg .. '#0'
+				end
+ 
+            else
+                -- we haven't reached the target yet
+               if PRINT_MODE == true then
+			   print('Humidity delta: ' .. delta)
+			   end
+            end
+        end
+        
+        if (fanFollowsProgram3 == 1) then -- not manually started
+ 
+            if (delta >= FAN_DELTA_TRIGGER3) then
+                -- ok, there is another FAN_DELTA_TRIGGER3 rise in humidity
+                -- when this happen we reset the fanMaxTimer to a new count down
+                -- because we have to ventilate a bit longer due to the extra humidity
+                if PRINT_MODE == true then
+				print('Another large increase detected, resetting max timer. Delta: ' .. delta)
+				end
+                fanMaxTimer = FAN_MAX_TIME
+            end
+ 
+            -- first see if it can be turned off
+            if (current <= targetFanOffHumidity or fanMaxTimer==0) then
+                commandArray[FAN_NAME3] = 'Off'
+                commandArray[FAN_NAME2] = 'On'
+                commandArray[FAN_NAME3] = 'Off'
+                msg = ''
+ 
+                if (fanMaxTimer == 0 and current > targetFanOffHumidity) then
+                    msg = 'Target not reached but safety time-out is triggered.'
+                    if PRINT_MODE == true then
+					print(msg)
+					end
+                else
+                    msg = 'Target humidity reached'
+                    if PRINT_MODE == true then
+					print(msg)
+					end
+                end
+ 
+				if PRINT_MODE == true then
+                print('Turning off the ventilator')
+                msg = msg .. '\nTurning off ventilator 3'
+				end
+ 
+                targetFanOffHumidity = 0
+                fanMaxTimer = 0
+                fanFollowsProgram3 = 0
+                -- reset history in this case.. we start all over
+                -- Tmin10 is still in the 'ventilator=On'-zone
+                humidityTmin10 = humidityTmin5
+                 if PRINT_MODE == true then
+				commandArray['SendNotification'] = 'Ventilator 3 is off#' .. msg .. '#0'
 				end
  
             else
@@ -225,7 +407,7 @@ if PRINT_MODE == true then
     print('humidityTmin10: ' .. humidityTmin10)
     print('fanMaxTimer: ' .. fanMaxTimer)
     print('humCounter:' .. humCounter)
-    print('fanFollowsProgram:' .. fanFollowsProgram)
+    print('fanFollowsProgram3:' .. fanFollowsProgram3)
     print('------ target: ' .. targetFanOffHumidity)
 end
  
@@ -237,6 +419,8 @@ commandArray['Variable:humidityTmin10'] = tostring(humidityTmin10)
 commandArray['Variable:humidityTmin5'] = tostring(humidityTmin5)
 commandArray['Variable:targetFanOffHumidity'] = tostring(targetFanOffHumidity)
 commandArray['Variable:fanMaxTimer'] = tostring(fanMaxTimer)
-commandArray['Variable:fanFollowsProgram'] = tostring(fanFollowsProgram)
+commandArray['Variable:fanFollowsProgram1'] = tostring(fanFollowsProgram1)
+commandArray['Variable:fanFollowsProgram2'] = tostring(fanFollowsProgram2)
+commandArray['Variable:fanFollowsProgram3'] = tostring(fanFollowsProgram3)
  
 return commandArray
