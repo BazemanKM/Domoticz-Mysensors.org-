@@ -417,8 +417,6 @@ if PRINT_MODE == true then
     print('------ target: ' .. targetFanOffHumidity)
 end
  
-end
- 
 -- save the globals
 commandArray['Variable:humCounter'] = tostring(humCounter)
 commandArray['Variable:humidityTmin10'] = tostring(humidityTmin10)
