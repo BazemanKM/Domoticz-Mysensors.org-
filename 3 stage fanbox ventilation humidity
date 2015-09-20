@@ -52,7 +52,7 @@ SENSOR_NAME2 = 'Keukentemperatuur'     -- exact device name of the humidity sens
  
 TEST_MODE = false                   -- when true TEST_MODE_HUMVAR is used instead of the real sensor
 TEST_MODE_HUMVAR = 'testHumidity'   -- fake humidity value, give it a test value in domoticz/uservars
-PRINT_MODE = false					-- when true wil print output to log and send notifications
+PRINT_MODE = true					-- when true wil print output to log and send notifications
  
 if PRINT_MODE == true then
 print('Fan control')
@@ -136,6 +136,8 @@ end
             fanFollowsProgram1 = 0
         end
         
+    end
+        
     if (otherdevices[FAN_NAME2]=='Off' or (otherdevices[FAN_NAME2]=='On' and fanFollowsProgram2==0)) then
         -- either the fan is off or it is on but the decrease program has not started
         -- in that latter case we start the program anyway. This could happen if someone turns on the ventilator
@@ -146,7 +148,9 @@ end
         if (fanFollowsProgram2 == 1 and otherdevices[FAN_NAME2]=='Off') then
             -- likely someone turned off the ventilator while the program was running
             fanFollowsProgram2 = 0
-        end    
+        end
+        
+    end
     
     if (otherdevices[FAN_NAME3]=='Off' or (otherdevices[FAN_NAME3]=='On' and fanFollowsProgram==0)) then
         -- either the fan is off or it is on but the decrease program has not started
@@ -159,6 +163,8 @@ end
             -- likely someone turned off the ventilator while the program was running
             fanFollowsProgram3 = 0
         end
+    
+    end
  
         -- see if we have to turn it on
         if (delta >= FAN_DELTA_TRIGGER1) then
