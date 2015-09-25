@@ -25,6 +25,8 @@ or when it is switched on before the program starts.
  
 Along the lines it prints to the log and sends notifications
 but of course you can turn that off by removing those lines.
+
+Aangepast door Gertjan Oldenburger (BazemanKM)
  
 --]]
  
