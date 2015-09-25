@@ -131,7 +131,7 @@ end
         -- see if we have to turn it on
         if (delta >= FAN_DELTA_TRIGGER) then
             -- time to start the fan
-        commandArray[FAN_NAME1] = 'Off'    
+        commandArray[FAN_NAME1] = 'On'    
 	commandArray[FAN_NAME2] = 'Off'
 	commandArray[FAN_NAME3] = 'On'
             targetFanOffHumidity = target
@@ -148,7 +148,7 @@ end
 			if PRINT_MODE == true then
             print('Rise in humidity. Turning on the vents. Delta: ' .. delta)
             print('Target humidity for turning the ventilator: ' ..targetFanOffHumidity)
-            commandArray['SendNotification'] = 'Ventilator 3 is on#The ventilator was activated at humidity level ' .. current .. '#0'
+            commandArray['SendNotification'] = 'Ventilator 3 aan#De ventilator is geactiveerd bij een luchtvochtigheid van ' .. current .. '#0'
 			end
         end
  
@@ -174,18 +174,18 @@ end
             -- first see if it can be turned off
             if (current <= targetFanOffHumidity or fanMaxTimer==0) then
                 commandArray[FAN_NAME3] = 'Off'
-		commandArray[FAN_NAME1] = 'Off'
+		commandArray[FAN_NAME1] = 'On'
 		commandArray[FAN_NAME2] = 'On'
  
                 msg = ''
  
                 if (fanMaxTimer == 0 and current > targetFanOffHumidity) then
-                    msg = 'Target not reached but safety time-out is triggered.'
+                    msg = 'Doel niet bereikt, safety time-out geactiveerd.'
                     if PRINT_MODE == true then
 					print(msg)
 					end
                 else
-                    msg = 'Target humidity reached'
+                    msg = 'Doel bereikt'
                     if PRINT_MODE == true then
 					print(msg)
 					end
@@ -193,7 +193,7 @@ end
  
 				if PRINT_MODE == true then
                 print('Turning off the ventilator')
-                msg = msg .. '\nTurning off ventilator 3'
+                msg = msg .. '\nVentilator 3 uitschakelen'
 				end
  
                 targetFanOffHumidity = 0
@@ -203,7 +203,7 @@ end
                 -- Tmin10 is still in the 'ventilator=On'-zone
                 humidityTmin10 = humidityTmin5
                  if PRINT_MODE == true then
-				commandArray['SendNotification'] = 'Ventilator 3 is uit, 2 aan#' .. msg .. '#0'
+				commandArray['SendNotification'] = 'Ventilator 3 uit#' .. msg .. '#0'
 				end
  
             else
