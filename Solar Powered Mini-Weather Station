@@ -1,4 +1,4 @@
-#include <SPI.h>
+    #include <SPI.h>
     #include <MySensor.h>  
     #include <DHT.h>  
     #include <BH1750.h>
@@ -17,7 +17,7 @@
     #define INTERRUPT DIGITAL_INPUT_RAIN_SENSOR-2
     
     boolean metric = false;
-    int altitude = 221; // 741 feet above sealevel
+    int altitude = 2; // Veendam 2.000,6.562
     float lastBmpTemp = -1;
     float lastPressure = -1;
     float lastHum = -1;
