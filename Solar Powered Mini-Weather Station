@@ -4,6 +4,8 @@
     #include <BH1750.h>
     #include <Wire.h> 
     #include <Adafruit_BMP085.h>
+    #include <MySensor.h>  
+    #include <SPI.h>
     
     #define CHILD_ID_HUM 0
     #define CHILD_ID_TEMP 1
@@ -11,10 +13,12 @@
     #define CHILD_ID_BARO 3
     #define CHILD_ID_BTEMP 4
     #define CHILD_ID_RAIN 5
+    #define CHILD_ID_UV 6
     
     #define DIGITAL_INPUT_RAIN_SENSOR 3 
     #define HUMIDITY_SENSOR_DIGITAL_PIN 4
     #define INTERRUPT DIGITAL_INPUT_RAIN_SENSOR-2
+    #define UV_SENSOR_ANALOG_PIN 1
     
     boolean metric = false;
     int altitude = 2; // Veendam 2.000,6.562
@@ -31,6 +35,10 @@
     unsigned long SLEEP_TIME = 60000;
     int batteryBasement = 800;
     float batteryConstant = 100.0 / (1023 - batteryBasement);
+    unsigned long lastSend =0; 
+    float uvIndex;
+    float lastUV = -1;
+    int uvIndexValue [12] = { 50, 227, 318, 408, 503, 606, 696, 795, 881, 976, 1079, 1170};
     
     Adafruit_BMP085 bmp = Adafruit_BMP085();
     BH1750 lightSensor;
@@ -43,6 +51,7 @@
     MyMessage msgBtemp(CHILD_ID_BTEMP, V_TEMP);
     MyMessage msgPressure(CHILD_ID_BARO, V_PRESSURE);
     MyMessage msgRain(CHILD_ID_RAIN, V_TRIPPED);
+    MyMessage uvMsg(CHILD_ID_UV, V_UV);
     
     void setup()  
     {
@@ -50,13 +59,14 @@
       gw.begin();
       dht.setup(HUMIDITY_SENSOR_DIGITAL_PIN); 
       bmp.begin();
-      gw.sendSketchInfo("Weather Sensor", "1.0");
+      gw.sendSketchInfo("Weerstation", "1.0");
       gw.present(CHILD_ID_HUM, S_HUM);
       gw.present(CHILD_ID_TEMP, S_TEMP);
       gw.present(CHILD_ID_LIGHT, S_LIGHT_LEVEL);
       gw.present(CHILD_ID_BARO, S_BARO);
       gw.present(CHILD_ID_BTEMP, S_TEMP);
       gw.present(CHILD_ID_RAIN, S_MOTION);
+      gw.present(CHILD_ID_UV, S_UV);
       pinMode(DIGITAL_INPUT_RAIN_SENSOR, INPUT);
       lightSensor.begin();
       metric = gw.getConfig().isMetric;
@@ -121,6 +131,39 @@
       if (lastBatteryPcnt != batteryPcnt) {
         gw.sendBatteryLevel(batteryPcnt);
         lastBatteryPcnt = batteryPcnt;
-     }
+      }
+      unsigned long currentTime = millis();
+  
+      uint16_t uv = analogRead(UV_SENSOR_ANALOG_PIN);// Get UV value
+      if (uv>1170)
+      uv=1170;
+  
+      int i;
+      for (i = 0; i < 12; i++)
+      {
+      if (uv <= uvIndexValue[i]) 
+      {
+        uvIndex = i;
+        break;
+      }
+    }
+  
+  //calculate 1 decimal if possible
+    if (i>0) {
+      float vRange=uvIndexValue[i]-uvIndexValue[i-1];
+      float vCalc=uv-uvIndexValue[i-1];
+      uvIndex+=(1.0/vRange)*vCalc-1.0;
+    }
+
+  //Serial.print("UVI: ");
+  //Serial.println(uvIndex,2);
+
+  //Send value to gateway if changed, or at least every 5 minutes
+    if ((uvIndex != lastUV)||(currentTime-lastSend >= 5*60*1000)) {
+        lastSend=currentTime;
+        gw.send(uvMsg.set(uvIndex,2));
+        lastUV = uvIndex;
+    }
+      
       gw.sleep(SLEEP_TIME);
     }
