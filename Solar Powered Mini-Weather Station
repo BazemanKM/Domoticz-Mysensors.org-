@@ -4,8 +4,6 @@
     #include <BH1750.h>
     #include <Wire.h> 
     #include <Adafruit_BMP085.h>
-    #include <MySensor.h>  
-    #include <SPI.h>
     
     #define CHILD_ID_HUM 0
     #define CHILD_ID_TEMP 1
@@ -55,8 +53,8 @@
     MyMessage msgBtemp(CHILD_ID_BTEMP, V_TEMP);
     MyMessage msgPressure(CHILD_ID_BARO, V_PRESSURE);
     MyMessage msgRain(CHILD_ID_RAIN, V_TRIPPED);
-    MyMessage uvMsg(CHILD_ID_UV, V_UV);
-    MyMessage msg(CHILD_ID-SOIL, V_TRIPPED);
+    MyMessage msgUV(CHILD_ID_UV, V_UV);
+    MyMessage msgSoil(CHILD_ID_SOIL, V_TRIPPED);
     
     void setup()  
     {
@@ -154,27 +152,22 @@
         break;
       }
   
-  //calculate 1 decimal if possible
       if (i>0) {
         float vRange=uvIndexValue[i]-uvIndexValue[i-1];
         float vCalc=uv-uvIndexValue[i-1];
         uvIndex+=(1.0/vRange)*vCalc-1.0;
       }
 
-  //Serial.print("UVI: ");
-  //Serial.println(uvIndex,2);
-
-  //Send value to gateway if changed, or at least every 5 minutes
       if ((uvIndex != lastUV)||(currentTime-lastSend >= 5*60*1000)) {
           lastSend=currentTime;
-          gw.send(uvMsg.set(uvIndex,2));
+          gw.send(msgUV.set(uvIndex,2));
           lastUV = uvIndex;
        }
-  // Read digital soil value
+       
      int soilValue = digitalRead(DIGITAL_INPUT_SOIL_SENSOR); // 1 = Not triggered, 0 = In soil with water 
      if (soilValue != lastSoilValue) {
        Serial.println(soilValue);
-       gw.send(msg.set(soilValue==0?1:0));  // Send the inverse to gw as tripped should be when no water in soil
+       gw.send(msgSoil.set(soilValue==0?1:0));  // Send the inverse to gw as tripped should be when no water in soil
        lastSoilValue = soilValue;
        }
       
