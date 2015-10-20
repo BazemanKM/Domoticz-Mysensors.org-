@@ -10,18 +10,15 @@
     #define CHILD_ID_LIGHT 2
     #define CHILD_ID_BARO 3
     #define CHILD_ID_BTEMP 4
-    #define CHILD_ID_RAIN 5
     #define CHILD_ID_UV 6
     #define CHILD_ID_MOISTURE 7
     
-    #define DIGITAL_INPUT_RAIN_SENSOR 3 
     #define HUMIDITY_SENSOR_DIGITAL_PIN 4
-    #define INTERRUPT DIGITAL_INPUT_RAIN_SENSOR-2
     #define UV_SENSOR_ANALOG_PIN 1
     #define SENSOR_ANALOG_PIN 6
     #define SENSOR_POWER_PIN 8
     #define round(x) ((x)>=0?(long)((x)+0.5):(long)((x)-0.5))
-    #define STABILIZATION_TIME 500 // Let the sensor stabilize before reading
+    #define STABILIZATION_TIME 500
     
     boolean metric = false;
     int altitude = 2; // Veendam 2.000,6.562
@@ -30,7 +27,6 @@
     float lastHum = -1;
     float lastTemp = -1;
     int BATTERY_SENSE_PIN = A0;
-    int lastRainValue = -1;
     int lastBatteryPcnt = 0;
     int updateAll = 60;
     int updateCount = 0;
@@ -54,9 +50,8 @@
     MyMessage msgLux(CHILD_ID_LIGHT, V_LIGHT_LEVEL);
     MyMessage msgBtemp(CHILD_ID_BTEMP, V_TEMP);
     MyMessage msgPressure(CHILD_ID_BARO, V_PRESSURE);
-    MyMessage msgRain(CHILD_ID_RAIN, V_TRIPPED);
     MyMessage msgUV(CHILD_ID_UV, V_UV);
-    MyMessage msg(CHILD_ID_MOISTURE, V_HUM);
+    MyMessage msgMoisture(CHILD_ID_MOISTURE, V_HUM);
     
     void setup()  
     {
@@ -70,10 +65,8 @@
       gw.present(CHILD_ID_LIGHT, S_LIGHT_LEVEL);
       gw.present(CHILD_ID_BARO, S_BARO);
       gw.present(CHILD_ID_BTEMP, S_TEMP);
-      gw.present(CHILD_ID_RAIN, S_MOTION);
       gw.present(CHILD_ID_UV, S_UV);
       gw.present(CHILD_ID_MOISTURE, S_HUM);
-      pinMode(DIGITAL_INPUT_RAIN_SENSOR, INPUT);
       lightSensor.begin();
       metric = gw.getConfig().isMetric;
     }
@@ -87,7 +80,6 @@
         lastLux = -1;
         lastBmpTemp = -1;
         lastPressure = -1;
-        lastRainValue = -1;
         lastBatteryPcnt = -1;
         updateCount = 0;
       }
@@ -127,11 +119,6 @@
         gw.send(msgPressure.set(pressure, 0));
         lastPressure = pressure;
       }
-      int rainValue = digitalRead(DIGITAL_INPUT_RAIN_SENSOR);
-      if (rainValue != lastRainValue) {
-        gw.send(msgRain.set(rainValue==0?1:0));
-        lastRainValue = rainValue;
-      }
       int sensorValue = analogRead(BATTERY_SENSE_PIN);
       int batteryPcnt = (sensorValue - batteryBasement) * batteryConstant;
       if (lastBatteryPcnt != batteryPcnt) {
@@ -165,11 +152,10 @@
           lastUV = uvIndex;
        }
        
-        digitalWrite(SENSOR_POWER_PIN, HIGH); // Power on the sensor
-      gw.sleep(STABILIZATION_TIME);
-      int moistureLevel = (1023 - analogRead(SENSOR_ANALOG_PIN)) / 10.23;
-      digitalWrite(SENSOR_POWER_PIN, LOW);
-      gw.send(msg.set(moistureLevel));
+        digitalWrite(SENSOR_POWER_PIN, HIGH);
+        int moistureLevel = (1023 - analogRead(SENSOR_ANALOG_PIN)) / 10.23;
+        digitalWrite(SENSOR_POWER_PIN, LOW);
+        gw.send(msgMoisture.set(moistureLevel));
       }      
 gw.sleep(SLEEP_TIME);
 }
