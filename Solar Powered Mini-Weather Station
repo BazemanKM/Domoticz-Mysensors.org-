@@ -12,7 +12,7 @@
     #define CHILD_ID_BTEMP 4
     #define CHILD_ID_RAIN 5
     #define CHILD_ID_UV 6
-    #define CHILD_ID_SOIL 7
+    #define CHILD_ID_MOISTURE 7
     
     #define DIGITAL_INPUT_RAIN_SENSOR 3 
     #define HUMIDITY_SENSOR_DIGITAL_PIN 4
@@ -20,6 +20,7 @@
     #define UV_SENSOR_ANALOG_PIN 1
     #define DIGITAL_INPUT_SOIL_SENSOR 6  
     #define INTERRUPT DIGITAL_INPUT_SOIL_SENSOR-2
+    #define round(x) ((x)>=0?(long)((x)+0.5):(long)((x)-0.5))
     
     boolean metric = false;
     int altitude = 2; // Veendam 2.000,6.562
@@ -54,7 +55,7 @@
     MyMessage msgPressure(CHILD_ID_BARO, V_PRESSURE);
     MyMessage msgRain(CHILD_ID_RAIN, V_TRIPPED);
     MyMessage msgUV(CHILD_ID_UV, V_UV);
-    MyMessage msgSoil(CHILD_ID_SOIL, V_TRIPPED);
+    MyMessage msg(CHILD_ID_MOISTURE, V_HUM);
     
     void setup()  
     {
@@ -70,7 +71,7 @@
       gw.present(CHILD_ID_BTEMP, S_TEMP);
       gw.present(CHILD_ID_RAIN, S_MOTION);
       gw.present(CHILD_ID_UV, S_UV);
-      gw.present(CHILD_ID_SOIL, S_MOTION);
+      gw.present(CHILD_ID_MOISTURE, S_HUM);
       pinMode(DIGITAL_INPUT_RAIN_SENSOR, INPUT);
       pinMode(DIGITAL_INPUT_SOIL_SENSOR, INPUT);
       lightSensor.begin();
@@ -164,12 +165,11 @@
           lastUV = uvIndex;
        }
        
-     int soilValue = digitalRead(DIGITAL_INPUT_SOIL_SENSOR); // 1 = Not triggered, 0 = In soil with water 
-     if (soilValue != lastSoilValue) {
-       Serial.println(soilValue);
-       gw.send(msgSoil.set(soilValue==0?1:0));  // Send the inverse to gw as tripped should be when no water in soil
-       lastSoilValue = soilValue;
-       }
+        digitalWrite(SENSOR_POWER_PIN, HIGH); // Power on the sensor
+	    gw.sleep(STABILIZATION_TIME);
+	    int moistureLevel = (1023 - analogRead(SENSOR_ANALOG_PIN)) / 10.23;
+	    digitalWrite(SENSOR_POWER_PIN, LOW);
+	    gw.send(msg.set(moistureLevel));
       
 gw.sleep(SLEEP_TIME);
 }
