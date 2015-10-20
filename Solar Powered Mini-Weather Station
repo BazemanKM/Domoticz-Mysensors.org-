@@ -18,9 +18,10 @@
     #define HUMIDITY_SENSOR_DIGITAL_PIN 4
     #define INTERRUPT DIGITAL_INPUT_RAIN_SENSOR-2
     #define UV_SENSOR_ANALOG_PIN 1
-    #define DIGITAL_INPUT_SOIL_SENSOR 6  
-    #define INTERRUPT DIGITAL_INPUT_SOIL_SENSOR-2
+    #define SENSOR_ANALOG_PIN 6
+    #define SENSOR_POWER_PIN 8
     #define round(x) ((x)>=0?(long)((x)+0.5):(long)((x)-0.5))
+    #define STABILIZATION_TIME 500 // Let the sensor stabilize before reading
     
     boolean metric = false;
     int altitude = 2; // Veendam 2.000,6.562
@@ -73,7 +74,6 @@
       gw.present(CHILD_ID_UV, S_UV);
       gw.present(CHILD_ID_MOISTURE, S_HUM);
       pinMode(DIGITAL_INPUT_RAIN_SENSOR, INPUT);
-      pinMode(DIGITAL_INPUT_SOIL_SENSOR, INPUT);
       lightSensor.begin();
       metric = gw.getConfig().isMetric;
     }
@@ -166,10 +166,10 @@
        }
        
         digitalWrite(SENSOR_POWER_PIN, HIGH); // Power on the sensor
-	    gw.sleep(STABILIZATION_TIME);
-	    int moistureLevel = (1023 - analogRead(SENSOR_ANALOG_PIN)) / 10.23;
-	    digitalWrite(SENSOR_POWER_PIN, LOW);
-	    gw.send(msg.set(moistureLevel));
-      
+      gw.sleep(STABILIZATION_TIME);
+      int moistureLevel = (1023 - analogRead(SENSOR_ANALOG_PIN)) / 10.23;
+      digitalWrite(SENSOR_POWER_PIN, LOW);
+      gw.send(msg.set(moistureLevel));
+      }      
 gw.sleep(SLEEP_TIME);
 }
