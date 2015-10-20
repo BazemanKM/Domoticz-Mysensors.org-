@@ -18,7 +18,6 @@
     #define SENSOR_ANALOG_PIN 6
     #define SENSOR_POWER_PIN 8
     #define round(x) ((x)>=0?(long)((x)+0.5):(long)((x)-0.5))
-    #define STABILIZATION_TIME 500
     
     boolean metric = false;
     int altitude = 2; // Veendam 2.000,6.562
@@ -127,7 +126,7 @@
       }
       unsigned long currentTime = millis();
   
-      uint16_t uv = analogRead(UV_SENSOR_ANALOG_PIN);// Get UV value
+      uint16_t uv = analogRead(UV_SENSOR_ANALOG_PIN);
       if (uv>1170)
       uv=1170;
   
