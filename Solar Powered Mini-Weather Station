@@ -59,6 +59,7 @@
     MyMessage msgPressure(CHILD_ID_BARO, V_PRESSURE);
     MyMessage msgUV(CHILD_ID_UV, V_UV);
     MyMessage msgMoisture(CHILD_ID_MOISTURE, V_HUM);
+    uint16_t lastlux;
     
     void setup()  
     {
