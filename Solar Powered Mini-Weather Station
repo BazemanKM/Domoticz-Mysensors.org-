@@ -1,12 +1,4 @@
-    *   VCC  >>> 5V
-    *   Gnd  >>> Gnd
-    *   ADDR >>> NC or GND  
-    *   SCL  >>> A5
-    *   SDA  >>> A4
-    * http://www.mysensors.org/build/light
-    */
-   
-    #include <SPI.h>
+#include <SPI.h>
     #include <MySensor.h>  
     #include <DHT.h>  
     #include <BH1750.h>
@@ -29,21 +21,20 @@
     
     boolean metric = false;
     int altitude = 2; // Veendam 2.000,6.562
+    unsigned long SLEEP_TIME = 60000;
+    unsigned long lastSend =0;
     float lastBmpTemp = -1;
     float lastPressure = -1;
     float lastHum = -1;
     float lastTemp = -1;
+    float lastUV = -1;
+    int batteryBasement = 800;
+    float batteryConstant = 100.0 / (1023 - batteryBasement);
+    float uvIndex;
     int BATTERY_SENSE_PIN = A0;
     int lastBatteryPcnt = 0;
     int updateAll = 60;
     int updateCount = 0;
-    uint16_t lastLux;
-    unsigned long SLEEP_TIME = 60000;
-    int batteryBasement = 800;
-    float batteryConstant = 100.0 / (1023 - batteryBasement);
-    unsigned long lastSend =0; 
-    float uvIndex;
-    float lastUV = -1;
     int uvIndexValue [12] = { 50, 227, 318, 408, 503, 606, 696, 795, 881, 976, 1079, 1170};
     int lastSoilValue = -1;
     
@@ -67,6 +58,7 @@
       gw.begin();
       dht.setup(HUMIDITY_SENSOR_DIGITAL_PIN); 
       bmp.begin();
+      lightSensor.begin();
       gw.sendSketchInfo("Weerstation", "1.0");
       gw.present(CHILD_ID_HUM, S_HUM);
       gw.present(CHILD_ID_TEMP, S_TEMP);
@@ -75,7 +67,6 @@
       gw.present(CHILD_ID_BTEMP, S_TEMP);
       gw.present(CHILD_ID_UV, S_UV);
       gw.present(CHILD_ID_MOISTURE, S_HUM);
-      lightSensor.begin();
       metric = gw.getConfig().isMetric;
     }
     
@@ -85,7 +76,7 @@
       if (updateCount == updateAll) {
         lastTemp = -1;
         lastHum = -1;
-        lastLux = -1;
+        lastlux = -1;
         lastBmpTemp = -1;
         lastPressure = -1;
         lastBatteryPcnt = -1;
