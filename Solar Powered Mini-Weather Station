@@ -1,4 +1,4 @@
-#include <SPI.h>
+    #include <SPI.h>
     #include <MySensor.h>  
     #include <DHT.h>  
     #include <BH1750.h>
@@ -14,7 +14,7 @@
     #define CHILD_ID_MOISTURE 7
     
     #define HUMIDITY_SENSOR_DIGITAL_PIN 4
-    #define UV_SENSOR_ANALOG_PIN 1
+    #define UV_SENSOR_ANALOG_PIN 3
     #define MOIST_SENSOR_ANALOG_PIN 6
     #define MOIST_SENSOR_POWER_PIN 8
     #define round(x) ((x)>=0?(long)((x)+0.5):(long)((x)-0.5))
@@ -45,7 +45,7 @@
     
     MyMessage msgHum(CHILD_ID_HUM, V_HUM);
     MyMessage msgTemp(CHILD_ID_TEMP, V_TEMP);
-    MyMessage msgLux(CHILD_ID_LIGHT, V_LEVEL);
+    MyMessage msgLux(CHILD_ID_LIGHT, V_LIGHT_LEVEL);
     MyMessage msgBtemp(CHILD_ID_BTEMP, V_TEMP);
     MyMessage msgPressure(CHILD_ID_BARO, V_PRESSURE);
     MyMessage msgUV(CHILD_ID_UV, V_UV);
