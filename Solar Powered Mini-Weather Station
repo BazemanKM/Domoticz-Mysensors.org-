@@ -1,4 +1,4 @@
-    #include <SPI.h>
+#include <SPI.h>
     #include <MySensor.h>  
     #include <DHT.h>  
     #include <BH1750.h>
@@ -11,13 +11,9 @@
     #define CHILD_ID_BARO 3
     #define CHILD_ID_BTEMP 4
     #define CHILD_ID_UV 5
-    #define CHILD_ID_MOISTURE 6
     
     #define HUMIDITY_SENSOR_DIGITAL_PIN 4
     #define UV_SENSOR_ANALOG_PIN 3
-    #define MOIST_SENSOR_ANALOG_PIN 6
-    #define MOIST_SENSOR_POWER_PIN 8
-    #define STABILIZATION_TIME 500
     #define SLEEP_TIME 60000
     
     boolean metric = false;
@@ -36,7 +32,6 @@
     int updateAll = 60;
     int updateCount = 0;
     int uvIndexValue [12] = { 50, 227, 318, 408, 503, 606, 696, 795, 881, 976, 1079, 1170};
-    int lastmoistureLevel = -1;
     
     Adafruit_BMP085 bmp = Adafruit_BMP085();
     BH1750 lightSensor;
@@ -49,7 +44,6 @@
     MyMessage msgBtemp(CHILD_ID_BTEMP, V_TEMP);
     MyMessage msgPressure(CHILD_ID_BARO, V_PRESSURE);
     MyMessage msgUV(CHILD_ID_UV, V_UV);
-    MyMessage msgMoisture(CHILD_ID_MOISTURE, V_HUM);
     uint16_t lastlux;
     
     void setup()  
@@ -66,7 +60,6 @@
       gw.present(CHILD_ID_BARO, S_BARO);
       gw.present(CHILD_ID_BTEMP, S_TEMP);
       gw.present(CHILD_ID_UV, S_UV);
-      gw.present(CHILD_ID_MOISTURE, S_HUM);
       metric = gw.getConfig().isMetric;
     }
     
@@ -81,7 +74,6 @@
         lastPressure = -1;
         lastBatteryPcnt = -1;
         lastUV = -1;
-        lastmoistureLevel = -1;
         updateCount = 0;
       }
       delay(dht.getMinimumSamplingPeriod());
@@ -153,14 +145,8 @@
           gw.send(msgUV.set(uvIndex,2));
           lastUV = uvIndex;
       }
-      
-      } 
-      digitalWrite(MOIST_SENSOR_POWER_PIN, HIGH); // Power on the sensor
-      gw.sleep(STABILIZATION_TIME);
-      int moistureLevel = (1023 - analogRead(MOIST_SENSOR_ANALOG_PIN)) / 10.23;
-      digitalWrite(MOIST_SENSOR_POWER_PIN, LOW);
-      gw.send(msgMoisture.set(moistureLevel));
-      lastmoistureLevel = moistureLevel;
+
+      }
 
 gw.sleep(SLEEP_TIME);
 }
