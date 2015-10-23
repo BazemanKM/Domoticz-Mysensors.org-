@@ -18,7 +18,7 @@
     #define MOIST_SENSOR_ANALOG_PIN 6
     #define MOIST_SENSOR_POWER_PIN 8
     #define STABILIZATION_TIME 500
-    #define SLEEP_TIME 15000
+    #define SLEEP_TIME 60000
     
     boolean metric = false;
     int altitude = 2; // Veendam 2.000,6.562
