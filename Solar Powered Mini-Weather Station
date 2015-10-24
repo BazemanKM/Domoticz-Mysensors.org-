@@ -1,3 +1,4 @@
+// From http://www.fam-oldenburger.nl/wordpress/2015/10/24/mysensors-org-weerstation-maken//
 #include <SPI.h>
 #include <MySensor.h>  
 #include <DHT.h>  
