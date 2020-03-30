@@ -1,7 +1,7 @@
 #!/bin/bash
  
 #Token to authenicate with mindergas.nl
-TOKEN=5wWxDZUQ94gSmxm47kh7
+TOKEN=XXXXXXXXXXX
  
 #fetch meterstand (use jq to parse JSON object correctly)
 METERSTAND=`curl -s "http://127.0.0.1:8080/json.htm?type=devices&rid=244"  | jq '.result[0].Counter'| tr -d '"'`
