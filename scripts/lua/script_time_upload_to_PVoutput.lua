@@ -18,8 +18,8 @@ local SolarDeviceName= "Buienradar zonnestraling"
 ----------------------------------------------------------------------------------------------------------
 -- PVoutput parameters
 ----------------------------------------------------------------------------------------------------------
-local PVoutputApi = "991d9d5f4144b5755a913180838e46c0bf8baec0" 				-- Your PVoutput api key
-local PVoutputSystemID = "8319" 					-- Your PVoutput System ID
+local PVoutputApi = "XXXXXXX" 				-- Your PVoutput api key
+local PVoutputSystemID = "XXXXX" 					-- Your PVoutput System ID
 local PVoutputPostInterval = 1 						-- The number of minutes between posts to PVoutput (normal is 5 but when in donation mode it's max 1)
 local PVoutputURL = '://pvoutput.org/service/r2/addstatus.jsp?key='	-- The URL to the PVoutput Service
 
