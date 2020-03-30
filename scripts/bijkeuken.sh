@@ -8,7 +8,7 @@ User=admin         # Username which has access to the RTSP stream
 Password=XXE86MFS   # Password for above provided user
 rtspUrl="rtsp://192.168.2.6:554/mpeg4?username=admin&password=EFA0F43A0E9854B2F207C3918D088DE3"   # Use https://sourceforge.net/projects/onvifdm/ to find your correct RTSP stream url
 ChatID=673222530    # Telegram chat ID   See https://www.domoticz.com/wiki/Installing_Telegram_Notification_System for setup instructions
-TelegramAPIToken=623170584:AAEcrkjM_PtgItyhGZOr0lh1rfDulB_tqsk    # Telegram API token
+TelegramAPIToken=XXXXXXXX    # Telegram API token
 
 filedate=`stat -L --format %Y $SnapFile`
 retc=$?
