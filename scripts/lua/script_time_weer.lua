@@ -10,8 +10,8 @@
 
     --WU Settings
     baseurl = "http://weatherstation.wunderground.com/weatherstation/updateweatherstation.php?"
-    ID = "IGRONING149"
-    PASSWORD = "XXE86MFS"
+    ID = "XXXXXX"
+    PASSWORD = "XXXXXXX"
 
     local function CelciusToFarenheit(C)
        return (C * (9/5)) + 32
