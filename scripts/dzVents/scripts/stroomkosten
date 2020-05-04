@@ -1,0 +1,26 @@
+return {
+ on = { timer = { "every 5 minutes" }},
+ --on = { devices = { "Stroommeter" }}, -- Verwijder -- aan het begin van deze regel en plaats -- voor bovenstaande regel als je het script wilt draaien zodra er een nieuw verbruik aan Domoticz is doorgegeven 
+
+	execute = function(dz)
+	-- Devices
+	local vandaagKwh = dz.devices('Stroommeter').counterToday -- Stroommeter device
+	local StroomKosten = dz.devices('Stroomkosten') -- Stroomkosten device
+
+	-- Eenheidsprijs in Euro's / Kwh - M3 local kwhPrijs = 0.23029
+		if (dz.time == 'Between 23:00 and 07:00') or (dz.day == 'Saturday') or (dz.day == 'Sunday') then
+			kwhPrijs = 0.1903 -- Daltarief
+		else kwhPrijs = 0.2038 -- Normaal tarief
+		end
+		
+	-- Vaste kosten in Euro's per dag (zoals vastrecht)
+	local kwhPrijsVast = 0.7439
+	
+	-- Kosten berekenen
+	local kwhKosten = dz.utils.round(kwhPrijs * vandaagKwh + kwhPrijsVast,2) -- rounded to two decimals and replace dot by comma
+	
+	-- Kosten updaten
+	StroomKosten.updateCustomSensor(kwhKosten)
+	
+	end
+}
