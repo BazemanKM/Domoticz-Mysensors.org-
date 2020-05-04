@@ -1,0 +1,59 @@
+return {
+
+    on = {
+        devices = { 
+                    35, -- Slimme meter youless (youless or P1)
+                    23, -- Zonnepanelen
+                  }
+         },
+    logging = {
+        level = domoticz.LOG_INFO,
+--        level = domoticz.LOG_ERROR,
+        marker = "Eigen verbruik"
+               },    
+    
+    execute = function(domoticz, item)
+        
+        local Smartmeter = domoticz.devices(35)   -- Slimme meter (youless or P1)
+
+        local Generation = domoticz.devices(23)   -- Zonnepanelen
+        local Consumption = domoticz.devices(37)  -- Eigen verbruik / calculated value / dummy Elekta kWh + counter
+        
+        -- Smartmeter
+        local EnergyImportLow = Smartmeter.rawData[1]
+        local EnergyImportHigh = Smartmeter.rawData[2]
+        local EnergyExportLow = Smartmeter.rawData[3]
+        local EnergyExportHigh = Smartmeter.rawData[4]
+        local PowerImport = Smartmeter.rawData[5]
+        local PowerExport = Smartmeter.rawData[6]
+        
+        -- Generation
+        local EnergyGeneration = Generation.rawData[2]
+        local PowerGeneration = Generation.rawData[1]
+
+        --Calculate
+        local EnergyImport = EnergyImportLow + EnergyImportHigh
+        local EnergyExport = EnergyExportLow + EnergyExportHigh
+        
+        local EnergyConsumption = EnergyGeneration + EnergyImport - EnergyExport
+        local PowerConsumption = PowerGeneration + PowerImport - PowerExport
+
+        --domoticz.log('EnergyImportLow ' .. EnergyImportLow .. ' Wh ', domoticz.LOG_INFO)
+        --domoticz.log('EnergyImportHigh ' .. EnergyImportHigh .. ' Wh ', domoticz.LOG_INFO)
+        --domoticz.log('EnergyExportLow ' .. EnergyExportLow .. ' Wh ', domoticz.LOG_INFO)
+        --domoticz.log('EnergyExportHigh ' .. EnergyExportHigh .. ' Wh ', domoticz.LOG_INFO)
+
+        --domoticz.log('PowerImport ' .. PowerImport .. ' W ', domoticz.LOG_INFO)
+        --domoticz.log('PowerExport ' .. PowerExport .. ' W ', domoticz.LOG_INFO)
+        --domoticz.log('EnergyGeneration ' .. EnergyGeneration .. ' Wh ', domoticz.LOG_INFO)
+        --domoticz.log('PowerGeneration ' .. PowerGeneration .. ' W ', domoticz.LOG_INFO)
+
+        --domoticz.log('EnergyConsumption ' .. EnergyConsumption .. ' Wh ', domoticz.LOG_INFO)
+        --domoticz.log('PowerConsumption: ' .. PowerConsumption .. ' W ', domoticz.LOG_INFO)
+        
+        domoticz.openURL('http://127.0.0.1:8080/json.htm?type=command&param=udevice&idx=37'..'&nvalue=0&svalue='..PowerConsumption..';'..EnergyConsumption)  
+        --vul zelf hier idx in van dummy Consumption (349) en domoticz port (8080)
+        
+    end
+    
+}
