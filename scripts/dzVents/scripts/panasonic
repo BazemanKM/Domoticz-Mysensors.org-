@@ -24,8 +24,10 @@ return {
         local Productie = domoticz.devices(39)
         local COP = domoticz.devices(40)
         local COPberekend = domoticz.devices(41)
-        --local Flow = domoticz.devices
-        --local DeltaT = domoticz.devices
+        local Flow = domoticz.devices(42)
+        local Tuit = domoticz.devices(43)
+        local Tin = domoticz.devices(44)
+        local DeltaT = domoticz.devices(45)
         
         -- Generation
         local EnergyGeneration1 = Tapwaterproductie.rawData[2]
@@ -38,6 +40,10 @@ return {
         local PowerConsumption1 = Tapwaterverbruik.rawData[1]
         local EnergyConsumption2 = Verwarmingverbruik.rawData[2]
         local PowerConsumption2 = Verwarmingverbruik.rawData[1]
+        
+        local Tin = Tin.rawData[1]
+        local Tuit = Tuit.rawData[1]
+        local Flow = Flow.rawData[1]
 
         --Calculate
         local EnergyGeneration = EnergyGeneration1 + EnergyGeneration2
@@ -45,17 +51,21 @@ return {
         local EnergyConsumption = EnergyConsumption1 + EnergyConsumption2
         local PowerConsumption = PowerConsumption1 + PowerConsumption2
         local COP = PowerGeneration / PowerConsumption
-        --local COPberekend = (Flow / 60) * 4.2 * DeltaT
+        local DeltaT = Tuit - Tin
+        local COPberekend = (Flow / 60) * 4.2 * DeltaT
 
         --domoticz.log('EnergyGeneration ' .. EnergyGeneration .. ' Wh ', domoticz.LOG_INFO)
         --domoticz.log('PowerGeneration ' .. PowerGeneration .. ' W ', domoticz.LOG_INFO)
         --domoticz.log('EnergyConsumption ' .. EnergyConsumption .. ' Wh ', domoticz.LOG_INFO)
         --domoticz.log('PowerConsumption: ' .. PowerConsumption .. ' W ', domoticz.LOG_INFO)
         --domoticz.log('COP: ' .. COP .. ' W/W ', domoticz.LOG_INFO)
+        --domoticz.log('COPberekend: ' .. COPberekend .. ' W/W ', domoticz.LOG_INFO)
         
         domoticz.openURL('http://127.0.0.1:8080/json.htm?type=command&param=udevice&idx=38'..'&nvalue=0&svalue='..PowerConsumption..';'..EnergyConsumption)
         domoticz.openURL('http://127.0.0.1:8080/json.htm?type=command&param=udevice&idx=39'..'&nvalue=0&svalue='..PowerGeneration..';'..EnergyGeneration)
         domoticz.openURL('http://127.0.0.1:8080/json.htm?type=command&param=udevice&idx=40'..'&nvalue=0&svalue='..COP..';'..COP)
+        domoticz.openURL('http://127.0.0.1:8080/json.htm?type=command&param=udevice&idx=45'..'&nvalue=0&svalue='..DeltaT..';'..DeltaT)
+        domoticz.openURL('http://127.0.0.1:8080/json.htm?type=command&param=udevice&idx=41'..'&nvalue=0&svalue='..COPberekend..';'..COPberekend)
         
     end
     
