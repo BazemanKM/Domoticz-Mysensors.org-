@@ -115,7 +115,7 @@ return
                     -- '&v4=' .. P1.usage ..
                     
                     -- Gebruik deze als je wilt wat er wordt berekend
-                    '&v3=' .. round(consumed.WhTotal,1) .. -- consumed 
+                    -- '&v3=' .. round(consumed.WhTotal,1) .. -- consumed 
                     '&v4=' .. round(consumed.actualWatt,1) ..
                        
                    -- Gebruik deze als je temperatuur en je voltage wilt uploaden
