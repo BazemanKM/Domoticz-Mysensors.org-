@@ -3,7 +3,7 @@ return {
     on = {
         devices = { 
                     35, -- Slimme meter youless (youless or P1)
-                    23, -- Zonnepanelen
+                    70, -- Zonnepanelen
                   }
          },
     logging = {
@@ -15,8 +15,7 @@ return {
     execute = function(domoticz, item)
         
         local Smartmeter = domoticz.devices(35)   -- Slimme meter (youless or P1)
-
-        local Generation = domoticz.devices(23)   -- Zonnepanelen
+        local Generation = domoticz.devices(70)   -- Zonnepanelen
         local Consumption = domoticz.devices(37)  -- Eigen verbruik / calculated value / dummy Elekta kWh + counter
         
         -- Smartmeter
@@ -35,9 +34,11 @@ return {
         local EnergyImport = EnergyImportLow + EnergyImportHigh
         local EnergyExport = EnergyExportLow + EnergyExportHigh
         
-        local EnergyConsumption = EnergyGeneration + EnergyImport - EnergyExport
-        local PowerConsumption = PowerGeneration + PowerImport - PowerExport
-
+        local EnergyConsumption = EnergyImport - EnergyExport
+        local PowerConsumption = PowerImport - PowerExport
+        local EnergyBruto = EnergyImport + EnergyGeneration - PowerExport
+        local PowerBruto = PowerImport + PowerGeneration- PowerExport
+        
         --domoticz.log('EnergyImportLow ' .. EnergyImportLow .. ' Wh ', domoticz.LOG_INFO)
         --domoticz.log('EnergyImportHigh ' .. EnergyImportHigh .. ' Wh ', domoticz.LOG_INFO)
         --domoticz.log('EnergyExportLow ' .. EnergyExportLow .. ' Wh ', domoticz.LOG_INFO)
@@ -51,8 +52,8 @@ return {
         --domoticz.log('EnergyConsumption ' .. EnergyConsumption .. ' Wh ', domoticz.LOG_INFO)
         --domoticz.log('PowerConsumption: ' .. PowerConsumption .. ' W ', domoticz.LOG_INFO)
         
-        domoticz.openURL('http://127.0.0.1:8080/json.htm?type=command&param=udevice&idx=37'..'&nvalue=0&svalue='..PowerConsumption..';'..EnergyConsumption)  
-        --vul zelf hier idx in van dummy Consumption (349) en domoticz port (8080)
+        domoticz.openURL('http://127.0.0.1:8080/json.htm?type=command&param=udevice&idx=37'..'&nvalue=0&svalue='..PowerConsumption..';'..EnergyConsumption)
+        domoticz.openURL('http://127.0.0.1:8080/json.htm?type=command&param=udevice&idx=47'..'&nvalue=0&svalue='..PowerBruto..';'..EnergyBruto)
         
     end
     
