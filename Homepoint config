@@ -1,0 +1,26 @@
+{
+    "wifi": "SSID",
+    "password": "WW",
+    "login": "USER",
+    "webpass": "WW",
+    "mqttbroker": "mqtt://192.168.2.4",
+    "mqttusername": "",
+    "mqttpasswd": "",
+    "timezone": "CET-1CEST-2,M3.5.0/02:00:00,M10.5.0/03:00:00",
+    "scenes": [{
+    "name": "Warmwater",
+    "type": "Sensor",
+    "devices": [{
+      "type": "singleValue",
+      "jsondata": false,
+      "firstIcon": "temperature_small",
+      "getTopic": "panasonic_heat_pump/sdc/DHW_Temp"
+    },
+    {
+      "type": "singleValue",
+      "jsondata": false,
+      "firstIcon": "temperature_small",
+      "getTopic": "panasonic_heat_pump/1wire/2876a3373a190133"
+    }]
+  }]
+}
