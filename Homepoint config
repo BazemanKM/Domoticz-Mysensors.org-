@@ -8,7 +8,19 @@
     "mqttpasswd": "",
     "timezone": "CET-1CEST-2,M3.5.0/02:00:00,M10.5.0/03:00:00",
     "scenes": [{
-    "name": "Warmwater",
+    "name": "Bad",
+    "type": "Switch",
+    "icon": "fountain",
+    "devices": [{
+      "name": "Bad",
+      "setTopic": "homepoint_bad",
+      "getTopic": "homepoint_bad",
+      "onValue": "true",
+      "offValue": "false"
+    }]
+    },
+    {
+   "name": "Warmwater",
     "type": "Sensor",
     "devices": [{
       "type": "singleValue",
@@ -24,27 +36,19 @@
     }]
     },
     {
-    "name": "Bad",
-    "type": "Switch",
-    "icon": "fountain",
-    "devices": [{
-      "name": "Bad"
-    }]
-    },
-    {
     "name": "Zon",
     "type": "Sensor",
     "devices": [{
       "type": "singleValue",
       "jsondata": false,
       "firstIcon": "temperature_small",
-      "getTopic": "panasonic_heat_pump/sdc/Solar_Temp"
+      "getTopic": "panasonic_heat_pump/1wire/2865e63d3a190111"
     },
     {
       "type": "singleValue",
       "jsondata": false,
-      "firstIcon": "wattage_small",
-      "getTopic": "panasonic_heat_pump/1wire/2865e63d3a190111"
+      "firstIcon": "temperature_small",
+      "getTopic": "panasonic_heat_pump/sdc/Solar_Temp"
     }]
   }]
 }
