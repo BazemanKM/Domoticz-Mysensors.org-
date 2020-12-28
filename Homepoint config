@@ -22,5 +22,13 @@
       "firstIcon": "temperature_small",
       "getTopic": "panasonic_heat_pump/1wire/2876a3373a190133"
     }]
+    },
+    {
+    "name": "Bad",
+    "type": "Switch",
+    "icon": "fountain",
+    "devices": [{
+      "name": "Bad"
+    }]
   }]
 }
