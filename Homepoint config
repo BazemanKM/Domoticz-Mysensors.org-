@@ -30,5 +30,21 @@
     "devices": [{
       "name": "Bad"
     }]
+    },
+    {
+    "name": "Zon",
+    "type": "Sensor",
+    "devices": [{
+      "type": "singleValue",
+      "jsondata": false,
+      "firstIcon": "temperature_small",
+      "getTopic": "panasonic_heat_pump/sdc/Solar_Temp"
+    },
+    {
+      "type": "singleValue",
+      "jsondata": false,
+      "firstIcon": "wattage_small",
+      "getTopic": "panasonic_heat_pump/1wire/2865e63d3a190111"
+    }]
   }]
 }
