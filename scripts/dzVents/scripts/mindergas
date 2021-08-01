@@ -19,7 +19,7 @@ return
                 url = 'https://www.mindergas.nl/api/gas_meter_readings',
                 method = 'POST',
                 headers = {
-                    ['AUTH-TOKEN'] = '5wWxDZUQ94gSmxm47kh7',
+                    ['AUTH-TOKEN'] = 'XXXXXXXXXX',
                     ['Content-Type'] = 'application/json',
                 },
                 callback = 'mycallbackstring',
