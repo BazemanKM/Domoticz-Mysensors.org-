@@ -1,0 +1,48 @@
+return {
+	on = {     
+	        timer = {'at 8:30', 'at 8:35', 'at 8:40' }
+	        },
+
+    execute = function(domoticz, item, info, timer, device, group)
+        local Vakantie = domoticz.devices('Vakantie')
+        local SensorOnder = domoticz.devices('Warmwater boilervat onder').rawData[1]
+        local SensorBoven = domoticz.devices('Warmwater boilervat').rawData[1]
+        local DeltaT = SensorOnder - SensorBoven
+        local Bad = domoticz.devices('Bad')
+        
+        if Bad.active then 
+            domoticz.notify("Bad", "Badwater is aan", domoticz.PRIORITY_NORMAL,domoticz.SOUND_DEFAULT, "" , "telegram")
+        
+        elseif DeltaT <= -10 and SensorOnder < '40' and SensorBoven <= '53' and not Vakantie.active and not Bad.active then
+            domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=switchlight&idx=170&switchcmd=On')
+            domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=switchlight&idx=171&switchcmd=Set%20Level&level=30')
+            domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=udevice&idx=173&svalue=53')
+            domoticz.notify("Boiler", "Boiler Aan 53", domoticz.PRIORITY_NORMAL,domoticz.SOUND_DEFAULT, "" , "telegram")
+        
+        elseif SensorBoven > '53' and not Vakantie.active and not Bad.active then
+            domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=switchlight&idx=170&switchcmd=Off')
+            domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=switchlight&idx=171&switchcmd=Set%20Level&level=30')
+            domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=udevice&idx=173&svalue=40')
+            domoticz.notify("Boiler", "Boiler warm > 53", domoticz.PRIORITY_NORMAL,domoticz.SOUND_DEFAULT, "" , "telegram")
+        
+        elseif DeltaT <= 0 and SensorOnder > '40' and not Vakantie.active and not Bad.active then
+            domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=switchlight&idx=171&switchcmd=Set%20Level&level=0')
+            domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=udevice&idx=173&svalue=40')
+            domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=switchlight&idx=170&switchcmd=Off')
+            domoticz.notify("Boiler", "Boiler warm", domoticz.PRIORITY_NORMAL,domoticz.SOUND_DEFAULT, "" , "telegram")
+
+        elseif DeltaT > -9 and not Vakantie.active and not Bad.active then 
+            domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=switchlight&idx=171&switchcmd=Set%20Level&level=0')
+            domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=udevice&idx=173&svalue=40')
+            domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=switchlight&idx=170&switchcmd=Off')
+            domoticz.notify("Boiler", "Boiler DeltaT <9", domoticz.PRIORITY_NORMAL,domoticz.SOUND_DEFAULT, "" , "telegram")
+            
+        elseif currentTime.matchesRule("between 8:39 and 8:40") then   
+            domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=switchlight&idx=171&switchcmd=Set%20Level&level=0')
+            domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=udevice&idx=173&svalue=40')
+            domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=switchlight&idx=170&switchcmd=Off')
+            domoticz.notify("Boiler", "Boiler uit", domoticz.PRIORITY_NORMAL,domoticz.SOUND_DEFAULT, "" , "telegram")
+end
+
+end
+}
