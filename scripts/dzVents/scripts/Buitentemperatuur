@@ -1,0 +1,126 @@
+-- getMaxTempHum
+
+local httpResponses = "getMaxTempHum"
+return {
+    on      =   {
+                    timer           =   { 'at 20:00'    },                       -- Your preferred time
+                    httpResponses   =   { httpResponses }
+                },
+
+    logging =   {
+                    level           =   domoticz.LOG_DEBUG,
+                    marker          =   httpResponses
+                },
+
+    execute = function(dz, item)
+        -- ****************************** Your settings below this line ***************************************************
+        temphumDevice           = dz.devices(225)          -- Replace with ID of Device you want to be notified on
+        timeSpan                = 24                       -- If set longer then the amount of short log sensors data in domoticz it will look at all data available
+        -- notificationSubsystem   = dz.NSS_PUSHOVER       -- Replace with your subsystem of choice or nil to get a notication on all  
+        notificationSubsystem   = nil          -- This will cause the script to send a notification to all subsystems  
+        -- ****************************** No changes required below this line *********************************************
+
+        local extremes = {}
+
+        local function logWrite(str,level)
+            dz.log(tostring(str),level or dz.LOG_DEBUG)
+        end
+
+        local function triggerJSON()
+            local  URLString   = dz.settings['Domoticz url'] .. "/json.htm?type=graph&sensor=temp&range=day&idx=" .. temphumDevice.id
+            dz.openURL({    url = URLString,
+                            method = "GET",
+                            callback = httpResponses })
+        end
+
+        local function convertTime(timeString,check)
+            _,_, year, month, day, hour, minute = string.find(timeString, "(%d+)-(%d+)-(%d+) (%d+):(%d+)")
+            
+            if check then
+                local seconds = os.time({year=year, month=month, day=day, hour=hour, minute=minute, seconds=0 })
+                return seconds
+            else    
+                local fmtString = os.date("%A, %d %B %Y (%H:%M)",os.time({year=year, month=month, day=day, hour=hour, minute=minute })):gsub(" 0"," ")
+                return fmtString                                 -- outgoing format: ddd d mmmm yyyy (hh:mm)
+            end
+            
+        end
+
+        local function showResult(str)
+            textDevice.updateText(str)
+            logWrite(str,dz.LOG_FORCE)
+        end
+
+        local function getTimeWindow(hours)
+            local to   = os.time(os.date("*t"))
+            local from = os.date("%A, %d %B %Y (%H:%M)",to - hours * 3600)
+            local to   = os.date("%A, %d %B %Y (%H:%M)",to)
+            return from, to
+        end
+
+        local function notify(from,now)
+            local notificationString =  "\nHoogste temperatuur: " .. extremes.high.temperature .. " Celsius op " .. convertTime(extremes.high.tTime) .. "\n"
+            notificationString = notificationString .. "Laagste temperatuur: " .. extremes.low.temperature .. " Celsius op " .. convertTime(extremes.low.tTime) .. "\n"
+            notificationString = notificationString .. "Hoogste luchtvochtigheid: " .. extremes.high.humidity .. "% op " .. convertTime(extremes.high.hTime) .. "\n"
+            notificationString = notificationString .. "Laagste luchtvochtigheid:  " .. extremes.low.humidity .. "% op " .. convertTime(extremes.low.hTime)
+
+            logWrite("\nExtremes between " .. from .. " and " .. now .. "\n" .. notificationString,dz.LOG_FORCE)
+             dz.notify("Extremes between " .. from .. " and " .. now, notificationString, dz.PRIORITY_NORMAL, nil,nil, notificationSubsystem )
+        end
+
+        local function getExtremes(rt)
+            extremes.low                = {}
+            extremes.high               = {}
+            extremes.low.temperature    = 10000
+            extremes.low.humidity       = 100
+            extremes.high.humidity      = 0
+            extremes.high.temperature   = -256
+            local sinceTime             = os.time(os.date('*t')) - timeSpan * 3600
+            
+            
+            for key in ipairs(rt) do
+                if tonumber(rt[key].hu) > extremes.high.humidity then
+                    if convertTime(rt[key].d,true) >  sinceTime then
+                        logWrite("New max humidity found on " .. convertTime(rt[key].d) .. " ==>> " .. rt[key].hu )
+                        extremes.high.humidity = tonumber(rt[key].hu)
+                        extremes.high.hTime = rt[key].d
+                    end
+                end
+                if tonumber(rt[key].hu) < extremes.low.humidity then
+                    if convertTime(rt[key].d,true) >  sinceTime then
+                        logWrite("New min humidity found on " .. convertTime(rt[key].d) .. " ==>> " .. rt[key].hu )
+                        extremes.low.humidity = tonumber(rt[key].hu)
+                        extremes.low.hTime = rt[key].d
+                    end
+                end
+                if tonumber(rt[key].te) > extremes.high.temperature then
+                    if convertTime(rt[key].d,true) >  sinceTime then
+                        logWrite("New max temperature found on " .. convertTime(rt[key].d) .. " ==>> " .. rt[key].te )
+                        extremes.high.temperature = tonumber(rt[key].te)
+                        extremes.high.tTime = rt[key].d
+                    end
+                end
+                if tonumber(rt[key].te) < extremes.low.temperature then
+                    if convertTime(rt[key].d,true) >  sinceTime then
+                        logWrite("New min temperature found on " .. convertTime(rt[key].d) .. " ==>> " .. rt[key].te )
+                        extremes.low.temperature = tonumber(rt[key].te)
+                        extremes.low.tTime = rt[key].d
+                    end
+                end
+            end
+            return extremes
+        end
+
+
+        -- Main
+        if not item.isHTTPResponse then
+            triggerJSON()
+        elseif item.ok then                                      -- statusCode == 2xx
+            extremes = getExtremes(item.json.result)
+            notify(getTimeWindow(timeSpan))
+        else
+            logWrite("Could not get (good) data from domoticz. Error (" .. (item.statusCode or 999) .. ")"  ,dz.LOG_ERROR)
+            logWrite(item.data)
+        end
+    end
+}
