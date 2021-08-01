@@ -1,0 +1,26 @@
+return {
+	on = {
+		timer = {'at 6:16','at 22:16'},
+		devices = {'Vakantie'}
+		},
+	
+	execute = function(domoticz, timer, triggeredItem)
+
+        local setPointId = 203
+        local setPoint = domoticz.utils.round(domoticz.devices(setPointId).setPoint, 2)
+        local Time = require('Time')
+        local currentTime = Time()
+        local Vakantie = domoticz.devices('Vakantie')
+    
+    domoticz.log('setpoint temperatuur: ' .. setPoint .. ' oC ', domoticz.LOG_DEBUG)
+
+    if currentTime.matchesRule("between 6:15 and 22:15") and not Vakantie.active then
+        domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=udevice&idx=203&svalue=21.5')
+    elseif currentTime.matchesRule("between 22:15 and 6:15") and not Vakantie.active then
+        domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=udevice&idx=203&svalue=20.5')
+    elseif Vakantie.active then
+        domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=udevice&idx=203&svalue=18')
+        domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=udevice&idx=173&svalue=40')
+    end
+end
+}
