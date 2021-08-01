@@ -1,0 +1,21 @@
+return {
+
+    on = {
+        timer = { 'every 10 minutes' }
+    },
+    
+   logging = {
+            level = domoticz.LOG_ERROR, -- LOG_DEBUG or LOG_ERROR
+            marker = "Dauwpunt: "
+        },
+    
+    execute = function(domoticz, item)
+        
+        local NetatmoDauwpunt = domoticz.devices(183).dewPoint
+        local Dauwpunt = domoticz.devices(229)
+
+        Dauwpunt.updateTemperature(NetatmoDauwpunt)
+
+    end
+    
+}
