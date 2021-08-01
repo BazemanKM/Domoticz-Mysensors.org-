@@ -1,0 +1,18 @@
+return {
+
+    on = {      timer = { 'every 2 minutes' } },
+    
+    execute = function(domoticz)
+		local SensorDT = domoticz.devices('Vloerverwarming DeltaT')
+		local SensorAV = domoticz.devices('Aanvoer vloerverwarming')
+		local WP = domoticz.devices('Warmtepomp')
+		
+		if WP.active and SensorDT.temperature > 0 or SensorAV.temperature > 24 then
+        domoticz.openURL('http://192.168.2.13:8080/json.htm?type=command&param=switchlight&idx=49&switchcmd=On')
+        elseif not WP.active and SensorDT.temperature <= 0 and SensorAV.temperature <= 24 then
+        domoticz.openURL('http://192.168.2.13:8080/json.htm?type=command&param=switchlight&idx=49&switchcmd=Off')
+end
+
+end
+
+}
