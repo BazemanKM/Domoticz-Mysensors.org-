@@ -1,0 +1,40 @@
+return {
+    on = {
+            timer = {'20 minutes before sunset','20 minutes after sunrise','at 23:01','at 6:16'},
+            devices = {'Trap onder','Trap boven','Gang','Voordeur','Schemersensor'}
+        
+         },
+    
+    execute = function(domoticz, item, info, timer, device, group)
+        
+        local motionDetected = domoticz.devices('Gang')
+        local lightVoordeur = domoticz.devices('Wandlamp')
+        local lightBuiten = domoticz.devices('Buitenlamp voordeur')
+        local lightHang = domoticz.devices('Hanglamp')
+        local voordeur = domoticz.devices('Voordeur')
+        local mySchemer = domoticz.devices('Schemersensor') --Schemersensor
+        local onder = domoticz.devices('Trap onder') -- bewegingssensor
+        local myGroup = domoticz.groups('Verlichting voordeur')
+        local Time = require('Time')
+        local currentTime = Time()
+
+        if currentTime.matchesRule("between 20 minutes before sunset and 23:00") then
+            lightVoordeur.switchOn()
+            lightBuiten.switchOn()
+        elseif currentTime.matchesRule("between 23:01 and 6:15") and (motionDetected.active or voordeur.active or onder.active) then
+            lightVoordeur.switchOn()
+            lightBuiten.switchOn()
+        elseif currentTime.matchesRule("between 23:01 and 6:15") and (not motionDetected.active and not voordeur.active and not onder.active) then
+            lightVoordeur.switchOff()
+            lightBuiten.switchOff()
+        elseif currentTime.matchesRule("between 20 minutes after sunrise and 20 minutes before sunset") and mySchemer.state == 'Off' then
+            lightVoordeur.switchOff()
+            lightBuiten.switchOff()
+        elseif currentTime.matchesRule("between 20 minutes after sunrise and 20 minutes before sunset") and mySchemer.state == 'On' then
+            lightVoordeur.switchOn()
+            lightBuiten.switchOn()
+        
+        end
+        
+    end
+}
