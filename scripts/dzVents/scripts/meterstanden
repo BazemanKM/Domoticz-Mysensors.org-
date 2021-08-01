@@ -1,0 +1,37 @@
+   local ScriptVersion = '1.0.8' -- domoticz > V2020.1 / dzVents >= 2.4.28
+    return {
+            on =    { 
+                        timer = { 'at 23:59' },
+                    },
+ 
+            logging =    {   
+                        level   =   domoticz.LOG_DEBUG, -- set to error when all OK
+                        marker  =   "Meterstanden naar telegram " .. ScriptVersion },    
+ 
+    execute = function(dz)
+ 
+    local subject = (dz.moduleLabel or 'vandaagKwhth'):gsub('#','')
+    local vandaagWP = dz.devices('Panasonic Verbruik').counterToday
+    local vandaagKwh = dz.devices('Stroommeter').counterToday
+    local vandaagSolar = dz.devices('SMA').counterToday
+ 
+    dz.log("VandaagWP",dz.LOG_DEBUG)
+    dz.log(vandaagWP,dz.LOG_DEBUG)
+    dz.log("Kwh",dz.LOG_DEBUG)
+    dz.log("VandaagKwh",dz.LOG_DEBUG)
+    dz.log(vandaagKwh,dz.LOG_DEBUG)
+    dz.log("Kwh",dz.LOG_DEBUG)
+    dz.log("VandaagSolar",dz.LOG_DEBUG)
+    dz.log(vandaagSolar,dz.LOG_DEBUG)
+    dz.log("Kwh",dz.LOG_DEBUG)
+    
+    --Verzend informatie. Dit is 1 bericht, met alle informatie.
+    local subject = 'Mijn energie overzicht'
+    local message = 'Opbrengst Zonnepanelen ' ..vandaagSolar.. ' kWh'.. '\n' ..
+                    'Van het netwerk ' ..vandaagKwh.. ' kWh'.. '\n' ..
+                    'Verbruik Warmtepomp ' ..vandaagWP.. ' kWh'--.. '\n' ..
+  
+    dz.notify(subject, message, dz.PRIORITY_MEDIUM, dz.SOUND_PERSISTENT, nil, dz.NSS_TELEGRAM)
+  end
+ 
+}
