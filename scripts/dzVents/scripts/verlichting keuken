@@ -1,0 +1,35 @@
+return {
+	on = {     
+	        timer = {'20 minutes before sunset','20 minutes after sunrise','at 22:46','at 6:16'},
+	        devices = {'Keuken','Schemersensor'}
+	        
+	        },
+
+    execute = function(domoticz, item, info, timer, device, group)
+
+        local mySchemer = domoticz.devices('Schemersensor') --Schemersensor
+        local myKeuken = domoticz.devices('Keuken') -- Bewegingsmelder
+        local Time = require('Time')
+        local currentTime = Time()
+        local lightAanrecht = domoticz.devices('Aanrecht') -- Aanrecht
+        local lightKeukenkast = domoticz.devices('Keukenkast') -- Keukenkast
+
+        if currentTime.matchesRule("between 20 minutes after sunrise and 20 minutes before sunset") and mySchemer.state == 'Off' then
+            lightAanrecht.switchOff()
+            lightKeukenkast.switchOff()
+        elseif currentTime.matchesRule("between 20 minutes after sunrise and 20 minutes before sunset") and mySchemer.state == 'On' then
+            lightAanrecht.switchOn()
+            lightKeukenkast.switchOn()
+        elseif currentTime.matchesRule("between 20 minutes before sunset and 22:45") then
+            lightAanrecht.switchOn()
+            lightKeukenkast.switchOn()
+        elseif currentTime.matchesRule("between 22:45 and 6:15") and myKeuken.active then
+            lightAanrecht.switchOn()
+            lightKeukenkast.switchOn()
+        elseif currentTime.matchesRule("between 22:45 and 6:15") and not myKeuken.active then
+            lightAanrecht.switchOff()
+            lightKeukenkast.switchOff()
+        
+        end
+    end
+}
