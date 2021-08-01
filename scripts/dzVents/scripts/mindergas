@@ -1,0 +1,48 @@
+return 
+{
+    on = 
+    { 
+        timer           = {'at 00:05'},
+        httpResponses   =   { mycallbackstring }, 
+    },
+
+    logging = { 
+        level = domoticz.LOG_ERROR, 
+        marker = 'minderGas' 
+    },
+
+    execute = function(dz, item)
+        
+        local function pushData(volume, pushDate)
+            dz.openURL(
+            {
+                url = 'https://www.mindergas.nl/api/gas_meter_readings',
+                method = 'POST',
+                headers = {
+                    ['AUTH-TOKEN'] = '5wWxDZUQ94gSmxm47kh7',
+                    ['Content-Type'] = 'application/json',
+                },
+                callback = 'mycallbackstring',
+                postData = 
+                {
+                    ['date'] = pushDate,
+                    ['reading'] = volume,
+                }
+            })
+        end
+
+        if item.isHTTPResponse then
+            dz.log('Response from MinderGas: ' .. item.statusCode)
+        else 
+            
+            local wpkWh = dz.devices(38).WhTotal -- Device IDX van je kWh meter!
+            
+            local volume = math.abs(dz.utils.round( (wpkWh/1000/8.8), 2))
+            
+            local yesterday = os.time() - 86400
+            local pushDate = os.date("%Y-%m-%d", yesterday)
+            
+            pushData(volume, pushDate) 
+        end
+   end
+}
