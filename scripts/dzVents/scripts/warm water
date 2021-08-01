@@ -1,0 +1,16 @@
+return {
+	on = {
+		timer = { 'at 15:35' },
+		devices = {'Vakantie'}
+		},
+	
+    execute = function(domoticz)
+		local Warmwater = domoticz.devices('Warmwater')
+		local Vakantie = domoticz.devices('Vakantie')
+		
+		if not Vakantie.active then
+		domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=udevice&idx=173&svalue=53')
+    end
+end
+
+}
