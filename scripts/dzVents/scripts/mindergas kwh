@@ -1,0 +1,66 @@
+-- Script to upload kWh metering readings to mindergas.nl. To use this script
+-- you first need to define the following user variables in - setup - more options - User variables :
+-- origianaly developed by  : Roblom
+-- optimized by             : markruys
+-- adapted to heatpump by   : MeAlbert
+
+--   MINDERGAS_DEVICE_NAME (Power metering device name like 'WP verbruik')
+--   MINDERGAS_AUTH_TOKEN (cf https://www.mindergas.nl/member/api)
+------ no changes needed below this point ----=
+
+return {
+    logging = {
+        level = domoticz.LOG_INFO,
+        marker = "MinderGas"
+    },
+    on = {
+        timer = {
+            'at 0:03' -- 3 minutes after midnight we take a sample of the gas metering device
+
+        },
+        httpResponses = {
+            'mindergas'
+        }
+    },
+    execute = function(domoticz, item)
+        if item.isTimer then
+            local mindergas_auth_token = domoticz.variables('MINDERGAS_AUTH_TOKEN')
+            if mindergas_auth_token == nil then
+                return
+            end
+            local mindergas_device = domoticz.variables('MINDERGAS_DEVICE_NAME')
+            if mindergas_device == nil then
+                return
+            end
+            local kWh_metering_device = domoticz.devices(mindergas_device.value)
+            if kWh_metering_device == nil or kWh_metering_device.WhTotal == nil then
+                domoticz.log("Unknown or wrong metering device '" .. mindergas_device.value .. "'", domoticz.LOG_ERROR)
+                return
+            end
+            local yesterday = os.date("%Y-%m-%d", os.time() - 24 * 60 * 60)
+
+            domoticz.log('MinderGas meter reading for ' .. yesterday .. ' is ' .. kWh_metering_device.WhTotal/1000, domoticz.LOG_INFO)
+
+            domoticz.openURL({
+                url = 'https://www.mindergas.nl/api/gas_meter_readings',
+                method = 'POST',
+                headers = {
+                    ['AUTH-TOKEN'] = mindergas_auth_token.value,
+                    ['Content-Type'] = 'application/json'
+                },
+                postData = {
+                    reading = kWh_metering_device.WhTotal/1000,
+                    date = yesterday
+                },
+                callback = 'mindergas'
+            }).withinHour(1) -- to prevent peak load on MinderGas infra, upload the sample the # of hours later filed in at .withinHour(#)
+
+        elseif item.isHTTPResponse then
+            if item.ok then
+                domoticz.log('Uploaded meter reading to MinderGas', domoticz.LOG_INFO)
+            else
+                domoticz.log('Failed to upload meter reading to MinderGas (code ' .. item.statusCode .. ')', domoticz.LOG_ERROR)
+            end
+        end
+    end
+}
