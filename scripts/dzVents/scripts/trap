@@ -1,0 +1,34 @@
+return {
+	on = {
+		    devices = {'Trap onder','Trap boven','Gang','Voordeur','Schemersensor'},
+		    timer = {'20 minutes before sunset','20 minutes after sunrise','at 23:02'}
+	},
+
+    execute = function(domoticz, item, info, timer, device, group)
+
+        local motionDetected = domoticz.devices('Gang')
+        local voordeur = domoticz.devices('Voordeur')
+        local mySchemer = domoticz.devices('Schemersensor') --Schemersensor
+        local onder = domoticz.devices('Trap onder') -- bewegingssensor
+        local boven = domoticz.devices('Trap boven') -- bewegingssensor
+        local trap = domoticz.devices('WLED Trap - Color & Brightness') -- LED trap
+        local Time = require('Time')
+        local currentTime = Time()  
+
+        if currentTime.matchesRule("between 20 minutes before sunset and 23:00") then
+            trap.switchOn()
+        elseif currentTime.matchesRule("between 23:01 and 6:00") and (onder.state == 'On' or boven.state == 'On') then
+            trap.switchOn()
+            trap.switchOff().afterMin(3)
+        elseif currentTime.matchesRule("between 23:01 and 6:00") and onder.state == 'Off' and boven.state == 'Off' then
+            trap.switchOff().afterMin(3)   
+        elseif currentTime.matchesRule("between 6:01 and 20 minutes after sunrise ") and mySchemer.state == 'On' and (onder.state == 'On' or boven.state == 'On') then
+            trap.switchOn()
+            trap.switchOff().afterMin(3)
+        elseif currentTime.matchesRule("between 20 minutes after sunrise and 20 minutes before sunset") and mySchemer.state == 'On' then
+            trap.switchOn()
+        elseif currentTime.matchesRule("between 20 minutes after sunrise and 20 minutes before sunset") and mySchemer.state == 'Off' then 
+            trap.switchOff()
+        end
+    end
+}
