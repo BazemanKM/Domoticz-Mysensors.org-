@@ -1,0 +1,31 @@
+return {
+	on = {     
+	        timer = {'20 minutes before sunset','20 minutes after sunrise','at 22:46','at 6:16'},
+	        devices = {'Woonkamer','Schemersensor','TV Kijken'},
+	        
+	        },
+
+    execute = function(domoticz, item, info, timer, device, group)
+
+        local mySchemer = domoticz.devices('Schemersensor') --Schemersensor
+        local myKeuken = domoticz.devices('Keuken') -- Bewegingsmelder
+        local myWoonkamer = domoticz.devices('Woonkamer') -- Bewegingsmelder
+        local myTVKijken = domoticz.devices('TV Kijken') -- Logitech
+        local Time = require('Time')
+        local currentTime = Time()
+        local lightDressoir = domoticz.devices('Dressoir') -- Dressoir
+
+        if currentTime.matchesRule("between 20 minutes after sunrise and 20 minutes before sunset") and mySchemer.state == 'Off' then
+            lightDressoir.switchOff()
+        elseif currentTime.matchesRule("between 20 minutes after sunrise and 20 minutes before sunset") and mySchemer.state == 'On' then
+            lightDressoir.switchOn()
+        elseif currentTime.matchesRule("between 20 minutes before sunset and 22:45") then
+            lightDressoir.switchOn()
+        elseif currentTime.matchesRule("between 22:45 and 6:15") and (myWoonkamer.active or myTVKijken.active) then
+            lightDressoir.switchOn()
+        elseif currentTime.matchesRule("between 22:45 and 6:15") and (not myWoonkamer.active and not myTVKijken.active) then
+            lightDressoir.switchOff()
+         
+        end
+    end
+}
