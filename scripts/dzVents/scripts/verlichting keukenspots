@@ -1,0 +1,24 @@
+return {
+	on = {     
+	        timer = {'21 minutes after sunrise','at 6:00','30 minutes after sunrise'},
+	        devices = {'Keuken'}
+	        
+	        },
+
+    execute = function(domoticz, item, info, timer, device, group)
+
+        local myKeuken = domoticz.devices('Keuken') -- Bewegingsmelder
+        local Time = require('Time')
+        local currentTime = Time()
+        local lightKeukenSpots = domoticz.devices('Keuken spots') -- Keuken spots
+
+        if not lightKeukenSpots.active and currentTime.matchesRule("between 5:00 and 20 minutes after sunrise") and myKeuken.active then
+            lightKeukenSpots.dimTo(35)
+        elseif lightKeukenSpots.active and currentTime.matchesRule("between 5:00 and 20 minutes after sunrise") and not myKeuken.active then
+            lightKeukenSpots.switchOff()
+        elseif lightKeukenSpots.active and currentTime.matchesRule("30 minutes after sunrise") then   
+            lightKeukenSpots.switchOff()
+        
+        end
+    end
+}
