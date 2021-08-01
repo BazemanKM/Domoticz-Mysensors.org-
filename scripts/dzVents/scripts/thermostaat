@@ -1,0 +1,61 @@
+return {
+   on = {
+        timer = {'every 5 minutes'}
+         },
+
+        logging = {
+            level = domoticz.LOG_DEBUG, -- LOG_DEBUG or LOG_ERROR
+            marker = "WP: Thermostaat [ Script ]"
+        },
+
+    execute = function(domoticz, timer, item)
+
+        -- set to true if you want to swtich on/off the heater
+        local switchWp = false
+
+        local setPointId = 203          -- Dummy thermostaat device
+        local roomTemperatureId = 183
+        local wpSwitchId = 170           -- Heatpump_State
+        local shiftId = 174             -- Z1_Heat_Request_Temp
+
+        local setPoint = domoticz.utils.round(domoticz.devices(setPointId).setPoint, 2)
+
+        -- script default values settings
+        local roomTemperature = tonumber(domoticz.devices(roomTemperatureId).rawData[1])
+        local wpState = 1
+        local shift = 0
+        local wpSetpointDevice = domoticz.devices(shiftId)
+
+        domoticz.log('setpoint temperatuur: ' .. setPoint .. ' oC ', domoticz.LOG_DEBUG)
+
+        if (wpState == 1) then
+            if (roomTemperature < (setPoint - 1.0)) then
+                shift = 5
+            elseif (roomTemperature < (setPoint - 0.8)) then
+                shift = 4
+            elseif (roomTemperature < (setPoint - 0.6)) then
+                shift = 3
+            elseif (roomTemperature < (setPoint - 0.4)) then
+                shift = 2
+            elseif (roomTemperature < (setPoint - 0.2)) then
+                shift = 1
+            elseif (roomTemperature > (setPoint + 0.4)) then
+                shift = -3
+            elseif (roomTemperature > (setPoint + 0.2)) then
+                shift = -2
+            elseif (roomTemperature > (setPoint + 0.1)) then
+                shift = -1
+            end
+
+            if (wpSetpointDevice.setPoint ~= domoticz.utils.round(shift, 1)) then
+                domoticz.log('WP HIT!!: ' .. domoticz.utils.round(shift, 1), domoticz.LOG_DEBUG)
+                wpSetpointDevice.updateSetPoint(shift)
+            end
+        end
+
+        domoticz.devices(setPointId).updateSetPoint(setPoint) -- update dummy sensor in case of red indicator ;-)
+
+        domoticz.log('WP shift: ' .. domoticz.utils.round(shift, 1), domoticz.LOG_DEBUG)
+
+    end
+}
