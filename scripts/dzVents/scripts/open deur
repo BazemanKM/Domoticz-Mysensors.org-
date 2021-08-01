@@ -1,0 +1,23 @@
+return {
+    on = {
+            devices = {'Bijkeuken achter'}
+        
+         },
+    
+    execute = function(domoticz, item, info, timer, device, group)
+       
+        local teleTok   = '623170584:AAEcrkjM_PtgItyhGZOr0lh1rfDulB_tqsk'
+        local chatId    = '673222530'
+		local snapFile  = '/home/pi/domoticz/scripts/camera_'
+		local domoReq   = 'http://192.168.2.4:8080/camsnapshot.jpg?idx=1'
+		local camName   = 'Bijkeuken'
+        local deur = domoticz.devices('Bijkeuken achter')
+        
+        if deur.state == 'Open' then
+            os.execute('wget -O "'..snapFile..camName..'.jpg" "'..domoReq..'"')
+            os.execute('curl -s -X POST "https://api.telegram.org/bot'..teleTok..'/sendPhoto?chat_id='..chatId..'" -F photo="@'..snapFile..camName..'.jpg" -F caption="Bijkeuken achter open."')
+            os.execute("rm " ..snapFile..camName..'.jpg')
+        end
+        
+    end
+}
