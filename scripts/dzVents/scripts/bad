@@ -1,0 +1,40 @@
+return {
+	on = {     
+	        devices = {'Bad'},
+	        timer = {'every 5 minutes'}
+	        },
+
+    execute = function(domoticz, item, info, timer, device, group)
+        local Bad = domoticz.devices('Bad')
+        local Sensor = domoticz.devices('Warmwater boilervat onder')
+        local Sensor2 = domoticz.devices('Zonneboiler dak')
+        local Sensor3 = domoticz.devices('Warmwater boilervat')
+
+    if Bad.active and Sensor2.temperature > 63 then
+        Bad.switchOff()
+        domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=switchlight&idx=171&switchcmd=Set%20Level&level=0')
+        domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=udevice&idx=173&svalue=40')
+        domoticz.notify("Bad", "Zonneboiler te warm", domoticz.PRIORITY_NORMAL,domoticz.SOUND_DEFAULT, "" , "telegram")
+
+    elseif Bad.active and Sensor.temperature <= 65 then
+        domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=switchlight&idx=170&switchcmd=On')
+        domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=switchlight&idx=171&switchcmd=Set%20Level&level=30')
+        domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=udevice&idx=173&svalue=65')
+        domoticz.notify("Bad", "Badwater maken", domoticz.PRIORITY_NORMAL,domoticz.SOUND_DEFAULT, "" , "telegram")
+       
+    elseif Bad.active and Sensor.temperature > 68 then 
+        Bad.switchOff()
+        domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=switchlight&idx=171&switchcmd=Set%20Level&level=0')
+        domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=udevice&idx=173&svalue=40')
+        domoticz.notify("Bad", "Badwater automatisch uit", domoticz.PRIORITY_NORMAL,domoticz.SOUND_DEFAULT, "" , "telegram")
+    
+    elseif Bad.active and Sensor3.temperature > 64 then 
+        Bad.switchOff()
+        domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=switchlight&idx=171&switchcmd=Set%20Level&level=0')
+        domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=udevice&idx=173&svalue=40')
+        domoticz.notify("Bad", "Warmwater boilervat te warm", domoticz.PRIORITY_NORMAL,domoticz.SOUND_DEFAULT, "" , "telegram")
+        
+end
+
+end
+}
