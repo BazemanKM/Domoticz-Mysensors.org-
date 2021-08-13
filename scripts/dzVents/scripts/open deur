@@ -6,8 +6,8 @@ return {
     
     execute = function(domoticz, item, info, timer, device, group)
        
-        local teleTok   = '623170584:AAEcrkjM_PtgItyhGZOr0lh1rfDulB_tqsk'
-        local chatId    = '673222530'
+        local teleTok   = '6'
+        local chatId    = '60'
 		local snapFile  = '/home/pi/domoticz/scripts/camera_'
 		local domoReq   = 'http://192.168.2.4:8080/camsnapshot.jpg?idx=1'
 		local camName   = 'Bijkeuken'
