@@ -54,5 +54,22 @@
       "firstIcon": "temperature_small",
       "getTopic": "panasonic_heat_pump/1wire/28ff5d85601604eb"
     }]
+    },
+    {
+    "name": "Buiten",
+    "type": "Sensor",
+    "devices": [{
+      "type": "singleValue",
+      "jsondata": false,
+      "firstIcon": "temperature_small",
+      "getTopic": "panasonic_heat_pump/main/Outside_Temp"
+    },
+    {
+      "type": "singleValue",
+      "jsondata": true,
+      "firstIcon": "temperature_small",
+      "firstKey": "svalue1",
+      "getTopic": "domoticz/out/225"
+    }]
   }]
 }
