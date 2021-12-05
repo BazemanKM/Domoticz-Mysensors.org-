@@ -1,0 +1,151 @@
+return {
+	on = {
+		devices = {'Vakantie','Bad','Warmtepomp','Verwarming aan','Warmwater aan'},
+		timer = {'every 5 minutes', 'at 6:00', 'at 6:16', 'at 8:25', 'at 8:31', 'at 8:45', 'at 15:36', 'at 21:36', 'at 21:37'},
+	},
+	
+	execute = function(domoticz)
+        local Vakantie = domoticz.devices('Vakantie')
+        local shiftId = 174
+        local roomTemperatureId = 183
+        local PTemperatureId = 208
+        local Bad = domoticz.devices('Bad')
+        local Badwater = domoticz.devices('Badwater')
+        local WP = domoticz.devices('Warmtepomp')
+        local Mix = domoticz.devices('Mixen')
+        local Verwarming = domoticz.devices('Verwarming aan')
+        local Warmwater = domoticz.devices('Warmwater aan')
+        local SensorOnder = domoticz.devices('Warmwater boilervat onder').rawData[1]
+        local SensorBoven = domoticz.devices('Warmwater boilervat').rawData[1]
+        local SensorZonneboiler = domoticz.devices('Zonneboiler dak')
+        local DeltaT = SensorOnder - SensorBoven
+        local Time = require('Time')
+        local currentTime = Time()
+        local roomTemperature = tonumber(domoticz.devices(roomTemperatureId).rawData[1])
+        local PTemperature = tonumber(domoticz.devices(PTemperatureId).rawData[1])
+        
+        if currentTime.matchesRule("at 6:00") then
+            domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=udevice&idx=203&svalue=21.5')
+            
+        elseif currentTime.matchesRule("between 6:16 and 8:20") and not WP.active and not Verwarming.active and not Vakantie.active and not Bad.active and roomTemperature <= 22 then
+            WP.switchOn()    
+            domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=switchlight&idx=171&switchcmd=Set%20Level&level=0')
+            domoticz.notify("Boiler", "Warmtepomp aan VW 21.5 ochtend", domoticz.PRIORITY_NORMAL,domoticz.SOUND_DEFAULT, "" , "")
+            Verwarming.switchOn()
+            
+        elseif currentTime.matchesRule("between 6:16 and 8:20") and WP.active and Verwarming.active and not Vakantie.active and not Bad.active and roomTemperature > 22 then
+            domoticz.notify("Boiler", "Warmtepomp uit, geen verwarming", domoticz.PRIORITY_NORMAL,domoticz.SOUND_DEFAULT, "" , "")
+            WP.switchOff()
+            Verwarming.switchOff()
+            
+        elseif currentTime.matchesRule("at 8:25") and not Mix.active then
+            WP.switchOn()
+            Mix.switchOn()
+            Verwarming.switchOff()
+            domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=switchlight&idx=171&switchcmd=Set%20Level&level=30')
+            domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=udevice&idx=173&svalue=40')
+            domoticz.notify("Boiler", "Warmtepomp aan, SWW op 40", domoticz.PRIORITY_NORMAL,domoticz.SOUND_DEFAULT, "" , "")
+            
+        elseif currentTime.matchesRule("between 8:30 and 8:35") and Mix.active and DeltaT <= -10 and SensorBoven < '45' then
+            domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=udevice&idx=173&svalue=53')
+            domoticz.notify("Boiler", "SWW op 53", domoticz.PRIORITY_NORMAL,domoticz.SOUND_DEFAULT, "" , "")
+        
+        elseif currentTime.matchesRule("between 8:30 and 8:40") and Mix.active and (SensorBoven > '45' or SensorOnder > '40' or DeltaT > -9) then
+            domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=switchlight&idx=171&switchcmd=Set%20Level&level=0')
+            domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=udevice&idx=173&svalue=40')
+            WP.switchOff()
+            Mix.switchOff()
+            domoticz.notify("Boiler", "SWW warm, Warmtepomp uit ", domoticz.PRIORITY_NORMAL,domoticz.SOUND_DEFAULT, "" , "")
+            
+        elseif currentTime.matchesRule("between 8:40 and 15:35") and Verwarming.active and not Vakantie.active and not Bad.active and roomTemperature > 22 then
+            domoticz.notify("Boiler", "Warmtepomp uit / overdag", domoticz.PRIORITY_NORMAL,domoticz.SOUND_DEFAULT, "" , "")
+            WP.switchOff()
+            Verwarming.switchOff()
+            
+        elseif currentTime.matchesRule("between 8:40 and 15:35") and not Verwarming.active and not Vakantie.active and not Bad.active and roomTemperature <= 22 then
+            WP.switchOn()
+            Verwarming.switchOn()
+            domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=switchlight&idx=171&switchcmd=Set%20Level&level=0')
+            domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=udevice&idx=203&svalue=21.5')
+            domoticz.notify("Boiler", "Warmtepomp aan VW 21.5 tot middag", domoticz.PRIORITY_NORMAL,domoticz.SOUND_DEFAULT, "" , "")
+            
+        elseif currentTime.matchesRule("between 15:36 and 21:35") and not Warmwater.active and roomTemperature > 22 and not Vakantie.active and not Bad.active then
+            WP.switchOn()
+            Warmwater.switchOn()
+            Verwarming.switchOff()
+            domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=udevice&idx=173&svalue=53')
+            domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=switchlight&idx=171&switchcmd=Set%20Level&level=30')
+            domoticz.notify("Boiler", "Warmtepomp aan SWW", domoticz.PRIORITY_NORMAL,domoticz.SOUND_DEFAULT, "" , "")
+            
+        elseif currentTime.matchesRule("between 15:36 and 21:35") and not Warmwater.active and roomTemperature <= 22 and not Vakantie.active and not Bad.active then
+            WP.switchOn()
+            Warmwater.switchOn()
+            Verwarming.switchOn()
+            domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=switchlight&idx=171&switchcmd=Set%20Level&level=40')
+            domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=udevice&idx=173&svalue=53')
+            domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=udevice&idx=203&svalue=21.5')
+            domoticz.notify("Boiler", "Warmtepomp aan SWW/VW", domoticz.PRIORITY_NORMAL,domoticz.SOUND_DEFAULT, "" , "")
+            
+        elseif currentTime.matchesRule("between 15:36 and 21:35") and Warmwater.active and not Verwarming.active and roomTemperature <= 22 and not Vakantie.active and not Bad.active then
+            WP.switchOn()
+            Warmwater.switchOn()
+            Verwarming.switchOn()
+            domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=switchlight&idx=171&switchcmd=Set%20Level&level=40')
+            domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=udevice&idx=173&svalue=53')
+            domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=udevice&idx=203&svalue=21.5')
+            domoticz.notify("Boiler", "Warmtepomp aan SWW/VW", domoticz.PRIORITY_NORMAL,domoticz.SOUND_DEFAULT, "" , "")
+    
+        elseif currentTime.matchesRule("between 15:36 and 21:35") and WP.active and Vakantie.active then
+            WP.switchOff()    
+            domoticz.notify("Boiler", "Warmtepomp uit/vakantie", domoticz.PRIORITY_NORMAL,domoticz.SOUND_DEFAULT, "" , "")
+            
+        elseif currentTime.matchesRule("at 21:36") and Warmwater.active then
+            Warmwater.switchOff()
+	        Verwarming.switchOn()
+	        domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=udevice&idx=203&svalue=20.5')
+	        domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=switchlight&idx=171&switchcmd=Set%20Level&level=0')
+        
+        elseif currentTime.matchesRule("between 21:37 and 6:15") and not Verwarming.active and roomTemperature <= 22 and not Vakantie.active and not Bad.active then
+            WP.switchOn()
+            Verwarming.switchOn()
+            domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=switchlight&idx=171&switchcmd=Set%20Level&level=0')
+            domoticz.notify("Boiler", "Warmtepomp aan VW 20.5 nacht", domoticz.PRIORITY_NORMAL,domoticz.SOUND_DEFAULT, "" , "")
+            
+        elseif currentTime.matchesRule("between 21:37 and 6:15") and Verwarming.active and roomTemperature > 22 and not Vakantie.active and not Bad.active then
+            WP.switchOff()
+            Verwarming.switchOff()
+            domoticz.notify("Boiler", "Warmtepomp uit / nacht", domoticz.PRIORITY_NORMAL,domoticz.SOUND_DEFAULT, "" , "")
+        
+        elseif currentTime.matchesRule("between 21:37 and 6:15") and WP.active and Vakantie.active then
+            WP.switchOff()    
+            domoticz.notify("Boiler", "Warmtepomp uit/vakantie", domoticz.PRIORITY_NORMAL,domoticz.SOUND_DEFAULT, "" , "")
+            
+        elseif Vakantie.active and Bad.active then
+            Bad.switchOff()
+            domoticz.notify("Bad", "Vakantie staat aan, Bad uit", domoticz.PRIORITY_NORMAL,domoticz.SOUND_DEFAULT, "" , "")
+        
+        elseif Bad.active and SensorZonneboiler.temperature > 63 then
+            Bad.switchOff()
+            domoticz.notify("Bad", "Zonneboiler te warm", domoticz.PRIORITY_NORMAL,domoticz.SOUND_DEFAULT, "" , "telegram")
+            
+        elseif Bad.active and SensorBoven < '63' and not Vakantie.active and not Badwater.active then
+            domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=switchlight&idx=171&switchcmd=Set%20Level&level=30')
+            domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=udevice&idx=173&svalue=63')
+            domoticz.notify("Bad", "Badwater maken", domoticz.PRIORITY_NORMAL,domoticz.SOUND_DEFAULT, "" , "")
+            Badwater.switchOn()
+            WP.switchOn()
+            Warmwater.switchOff()
+	        Verwarming.switchOff()
+       
+        elseif Bad.active and not Vakantie.active and (SensorBoven > '63' or SensorOnder > '63') then 
+            domoticz.notify("Bad", "Badwater klaar", domoticz.PRIORITY_NORMAL,domoticz.SOUND_DEFAULT, "" , "")
+            Badwater.switchOff()
+            WP.switchOff()
+            Bad.switchOff()
+            Warmwater.switchOff()
+	        Verwarming.switchOff()
+	        
+        end
+    
+	end
+}
