@@ -1,40 +1,80 @@
 return {
-	on = {     
-	        devices = {'Bad'},
-	        timer = {'every 5 minutes'}
-	        },
-
-    execute = function(domoticz, item, info, timer, device, group)
+	on = {
+		devices = {'Vakantie','Bad','Warmtepomp','Verwarming aan','Warmwater aan','Badwater'},
+		timer = {'every 5 minutes'},
+	},
+	
+	execute = function(domoticz)
+        local Vakantie = domoticz.devices('Vakantie')
+        local shiftId = 174
+        local roomTemperatureId = 183
+        local PTemperatureId = 208
         local Bad = domoticz.devices('Bad')
-        local Sensor = domoticz.devices('Warmwater boilervat onder')
-        local Sensor2 = domoticz.devices('Zonneboiler dak')
-        local Sensor3 = domoticz.devices('Warmwater boilervat')
-
-    if Bad.active and Sensor2.temperature > 63 then
-        Bad.switchOff()
-        domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=switchlight&idx=171&switchcmd=Set%20Level&level=0')
-        domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=udevice&idx=173&svalue=40')
-        domoticz.notify("Bad", "Zonneboiler te warm", domoticz.PRIORITY_NORMAL,domoticz.SOUND_DEFAULT, "" , "telegram")
-
-    elseif Bad.active and Sensor.temperature <= 65 then
-        domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=switchlight&idx=170&switchcmd=On')
-        domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=switchlight&idx=171&switchcmd=Set%20Level&level=30')
-        domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=udevice&idx=173&svalue=65')
-        domoticz.notify("Bad", "Badwater maken", domoticz.PRIORITY_NORMAL,domoticz.SOUND_DEFAULT, "" , "telegram")
-       
-    elseif Bad.active and Sensor.temperature > 68 then 
-        Bad.switchOff()
-        domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=switchlight&idx=171&switchcmd=Set%20Level&level=0')
-        domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=udevice&idx=173&svalue=40')
-        domoticz.notify("Bad", "Badwater automatisch uit", domoticz.PRIORITY_NORMAL,domoticz.SOUND_DEFAULT, "" , "telegram")
-    
-    elseif Bad.active and Sensor3.temperature > 64 then 
-        Bad.switchOff()
-        domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=switchlight&idx=171&switchcmd=Set%20Level&level=0')
-        domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=udevice&idx=173&svalue=40')
-        domoticz.notify("Bad", "Warmwater boilervat te warm", domoticz.PRIORITY_NORMAL,domoticz.SOUND_DEFAULT, "" , "telegram")
+        local Badwater = domoticz.devices('Badwater')
+        local WP = domoticz.devices('Warmtepomp')
+        local Mix = domoticz.devices('Mixen')
+        local Verwarming = domoticz.devices('Verwarming aan')
+        local Warmwater = domoticz.devices('Warmwater aan')
+        local SensorOnder = domoticz.devices('Warmwater boilervat onder').rawData[1]
+        local SensorBoven = domoticz.devices('Warmwater boilervat').rawData[1]
+        local SensorZonneboiler = domoticz.devices('Zonneboiler dak')
+        local DeltaT = SensorOnder - SensorBoven
+        local Time = require('Time')
+        local currentTime = Time()
+        local roomTemperature = tonumber(domoticz.devices(roomTemperatureId).rawData[1])
+        local PTemperature = tonumber(domoticz.devices(PTemperatureId).rawData[1])
         
-end
-
-end
+        if Vakantie.active and Bad.active then
+            Bad.switchOff()
+            domoticz.notify("Bad", "Vakantie staat aan, Bad uit", domoticz.PRIORITY_NORMAL,domoticz.SOUND_DEFAULT, "" , "")
+        
+        elseif Bad.active and SensorZonneboiler.temperature > 63 then
+            Bad.switchOff()
+            domoticz.notify("Bad", "Zonneboiler te warm, Bad uit", domoticz.PRIORITY_NORMAL,domoticz.SOUND_DEFAULT, "" , "telegram")
+            
+        elseif Bad.active and SensorBoven < '63' and roomTemperature <= 22 and not Vakantie.active and not Badwater.active and Verwarming.active then
+            domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=switchlight&idx=171&switchcmd=Set%20Level&level=40')
+            domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=udevice&idx=173&svalue=63')
+            domoticz.notify("Bad", "Badwater maken", domoticz.PRIORITY_NORMAL,domoticz.SOUND_DEFAULT, "" , "")
+            Badwater.switchOn()
+            WP.switchOn()
+            Warmwater.switchOn()
+	        
+	    elseif Bad.active and SensorBoven < '63' and roomTemperature > 22 and not Vakantie.active and not Badwater.active and not Verwarming.active then
+            domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=switchlight&idx=171&switchcmd=Set%20Level&level=30')
+            domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=udevice&idx=173&svalue=63')
+            domoticz.notify("Bad", "Badwater maken", domoticz.PRIORITY_NORMAL,domoticz.SOUND_DEFAULT, "" , "")
+            Badwater.switchOn()
+            WP.switchOn()
+            Warmwater.switchOn()
+	        
+        elseif Bad.active and not Vakantie.active and (SensorBoven > '63' or SensorOnder > '63') and Verwarming.active then 
+            domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=switchlight&idx=171&switchcmd=Set%20Level&level=40')
+            domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=udevice&idx=173&svalue=40')
+            domoticz.notify("Bad", "Badwater klaar", domoticz.PRIORITY_NORMAL,domoticz.SOUND_DEFAULT, "" , "")
+            Badwater.switchOff()
+            Bad.switchOff()
+            Warmwater.switchOff()
+            Verwarming.switchOff()
+            
+         elseif Bad.active and not Vakantie.active and (SensorBoven > '63' or SensorOnder > '63') and not Verwarming.active then 
+            domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=switchlight&idx=171&switchcmd=Set%20Level&level=30')
+            domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=udevice&idx=173&svalue=40')
+            domoticz.notify("Bad", "Badwater klaar", domoticz.PRIORITY_NORMAL,domoticz.SOUND_DEFAULT, "" , "")
+            Badwater.switchOff()
+            Bad.switchOff()
+            Warmwater.switchOff()
+            Verwarming.switchOff()
+            
+        elseif Badwater.active and not Bad.active then
+	        domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=switchlight&idx=171&switchcmd=Set%20Level&level=40')
+	        domoticz.openURL('http://192.168.2.4:8080/json.htm?type=command&param=udevice&idx=173&svalue=40')
+            domoticz.notify("Bad", "Badwater uit", domoticz.PRIORITY_NORMAL,domoticz.SOUND_DEFAULT, "" , "")
+            Badwater.switchOff()
+	        Warmwater.switchOff()
+	        Verwarming.switchOff()
+	        
+        end
+    
+	end
 }
