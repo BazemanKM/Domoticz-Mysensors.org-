@@ -69,7 +69,7 @@
       "jsondata": true,
       "firstIcon": "temperature_small",
       "firstKey": "svalue1",
-      "getTopic": "domoticz/out/225"
+      "getTopic": "domoticz/out/314"
     }]
   }]
 }
