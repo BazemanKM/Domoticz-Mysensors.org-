@@ -7,7 +7,7 @@ return {
                   }
          },
     logging = {
-        level = domoticz.LOG_INFO,
+--        level = domoticz.LOG_INFO,
 --        level = domoticz.LOG_ERROR,
         marker = "Eigen verbruik"
                },    
@@ -17,6 +17,13 @@ return {
         local Smartmeter = domoticz.devices(35)   -- Slimme meter (youless or P1)
         local Generation = domoticz.devices(70)   -- Zonnepanelen
         local Consumption = domoticz.devices(37)  -- Eigen verbruik / calculated value / dummy Elekta kWh + counter
+        local Warmtepomp = domoticz.devices(302)
+        local WasmachineZolder = domoticz.devices(244)
+        local WasmaschineBijkeuken = domoticz.devices(307)
+        local Airco = domoticz.devices(249)
+        local Quooker = domoticz.devices(337)
+        local Cube = domoticz.devices(342)
+        local Wasdroger = domoticz.devices(384)
         
         -- Smartmeter
         local EnergyImportLow = Smartmeter.rawData[1]
@@ -29,7 +36,22 @@ return {
         -- Generation
         local EnergyGeneration = Generation.rawData[2]
         local PowerGeneration = Generation.rawData[1]
-
+        
+        local WPverbruikEnergy = Warmtepomp.rawData[2]
+        local WPverbruikPower = Warmtepomp.rawData[1]
+        local WasmaschineZEnergy = WasmachineZolder.rawData[2]
+        local WasmaschineZPower = WasmachineZolder.rawData[1]
+        local WasmaschineBEnergy = WasmaschineBijkeuken.rawData[2]
+        local WasmaschineBPower = WasmaschineBijkeuken.rawData[1]
+        local AircoEnergy = Airco.rawData[2]
+        local AircoPower= Airco.rawData[1] 
+        local QuookerEnergy = Quooker.rawData[2]
+        local QuookerPower= Quooker.rawData[1]
+        local CubeEnergy = Cube.rawData[2]
+        local CubePower= Cube.rawData[1] 
+        local WasdrogerEnergy = Cube.rawData[2]
+        local WasdrogerPower= Cube.rawData[1] 
+        
         --Calculate
         local EnergyImport = EnergyImportLow + EnergyImportHigh
         local EnergyExport = EnergyExportLow + EnergyExportHigh
@@ -37,7 +59,12 @@ return {
         local EnergyConsumption = EnergyImport - EnergyExport
         local PowerConsumption = PowerImport - PowerExport
         local EnergyBruto = EnergyImport + EnergyGeneration - PowerExport
-        local PowerBruto = PowerImport + PowerGeneration- PowerExport
+        local PowerBruto = PowerImport + PowerGeneration - PowerExport
+        local QuookerTEnergy = QuookerEnergy + CubeEnergy
+        local QuookerTPower = QuookerPower + CubePower
+        
+        local EnergyOverig = EnergyConsumption - WPverbruikEnergy - WasmaschineZEnergy - WasmaschineBEnergy - AircoEnergy - QuookerTEnergy - WasdrogerEnergy
+        local PowerOverig = PowerConsumption - WPverbruikPower - WasmaschineZPower - WasmaschineBPower - AircoPower - QuookerTPower - WasdrogerPower
         
         --domoticz.log('EnergyImportLow ' .. EnergyImportLow .. ' Wh ', domoticz.LOG_INFO)
         --domoticz.log('EnergyImportHigh ' .. EnergyImportHigh .. ' Wh ', domoticz.LOG_INFO)
@@ -54,6 +81,8 @@ return {
         
         domoticz.openURL('http://127.0.0.1:8080/json.htm?type=command&param=udevice&idx=37'..'&nvalue=0&svalue='..PowerConsumption..';'..EnergyConsumption)
         domoticz.openURL('http://127.0.0.1:8080/json.htm?type=command&param=udevice&idx=47'..'&nvalue=0&svalue='..PowerBruto..';'..EnergyBruto)
+        domoticz.openURL('http://127.0.0.1:8080/json.htm?type=command&param=udevice&idx=332'..'&nvalue=0&svalue='..PowerOverig..';'..EnergyOverig)
+        domoticz.openURL('http://127.0.0.1:8080/json.htm?type=command&param=udevice&idx=347'..'&nvalue=0&svalue='..QuookerTPower..';'..QuookerTEnergy)
         
     end
     
