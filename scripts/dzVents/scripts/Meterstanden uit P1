@@ -1,0 +1,54 @@
+--  dzVents script to Parse P1 Smart Meter Electricity value into separate Meter Readings.
+
+local fetchIntervalMins = 15    -- (Integer) Minutes frequence of this script execution 1 = every minute, 10 = every 10 minutes, etc ) must be one of (1,2,3,4,5,6,10,12,15,20,30)
+local ScriptVersion = '0.1.9'
+
+return {
+
+    on =      {
+                        timer = { 'every ' .. fetchIntervalMins .. ' Minutes' }
+              },
+              
+   logging = {
+                        level = domoticz.LOG_DEBUG,    -- Uncomment this line to override the dzVents global logging setting
+                        marker = 'SME '.. ScriptVersion
+              },
+
+
+    execute = function(dz, item)
+
+    --  The following need updated for your environment get the Idx or 'Name' of the Device tab.
+        local P1data  = 1   -- Electra, P1 Smart Meter device
+        local idxu1   = 1560   -- Meter Usage low, Virtual device, counter incremental
+        local idxu2   = 1559   -- Meter Usage High, Virtual device, counter incremental
+        local idxr1   = 1558   -- Meter Return Low, Virtual device, counter incremental
+        local idxr2   = 1557   -- Meter Return High, Virtual device, counter incremental
+        -- local idxcons = xxx   -- Meter Actual Usage, Virtual device, counter incremental
+        -- local idxprod = xxx   -- Meter Actual Production, Virtual device, counter incremental
+        
+        local idxuTotal = 1566 -- Meter Usage low, Virtual device, counter incremental
+        local idxrTotal = 1567 -- Meter return low, Virtual device, counter incremental
+
+        
+        -- Get values from device P1Data of the Smart Meter
+        local SMdata = dz.devices(P1data)
+  
+        local function updateCounter(idx,value)   
+            dz.devices(idx).updateCounter(value)
+            dz.log("Set " .. dz.devices(idx).name .. " to: ",dz.LOG_DEBUG)
+        end 
+
+        -- Update the device and Debug meassages with the accessory values from table SMdata
+        updateCounter(idxu1,SMdata.usage1)
+        updateCounter(idxu2,SMdata.usage2)
+        updateCounter(idxr1,SMdata.return1)
+        updateCounter(idxr2,SMdata.return2)
+        --updateCounter(idxcons,SMdata.usage)
+        --updateCounter(idxprod,SMdata.usageDelivered)
+        
+        updateUsage(idxuTotal,( SMdata.usage1 + SMdata.usage2 ))
+        updateCounter(idxrTotal,( SMdata.return1 + SMdata.return2 ))
+        
+        
+    end 
+}
