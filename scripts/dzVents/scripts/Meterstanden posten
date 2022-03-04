@@ -1,0 +1,32 @@
+--  gebruik ook het dzVents script to Parse P1 Smart Meter Electricity value into separate Meter Readings (Meterstanden uit P1).
+
+local ScriptVersion = '0.1.9'  
+
+    return {
+            on =    { 
+                        timer = { 'at 23:59' },
+                    },
+ 
+            logging =    {   
+                        level   =   domoticz.LOG_DEBUG, -- set to error when all OK
+                        marker  =   "Meterstanden naar Telegram " .. ScriptVersion },    
+ 
+    execute = function(dz)
+ 
+    local verbruikdal = dz.utils.round(dz.devices('Verbruik daltarief').counter,0)
+    local verbruiknormaal = dz.utils.round(dz.devices('Verbruik normaaltarief').counter,0) 
+    local terugdal = dz.utils.round(dz.devices('Teruglevering daltarief').counter,0) 
+    local terugnormaal = dz.utils.round(dz.devices('Teruglevering normaaltarief').counter,0) 
+    
+    --Verzend informatie. Dit is 1 bericht, met alle informatie.
+    local subject = 'Meterstanden'
+    local message = 'Meterstanden:' ..'\n' ..
+                    'Verbruik daltarief ' ..verbruikdal.. ' kWh'.. '\n' ..
+                    'Verbruik normaaltarief ' ..verbruiknormaal.. ' kWh'.. '\n' ..
+                    'Teruglevering daltarief ' ..terugdal.. ' kWh'.. '\n' ..
+                    'Teruglevering normaaltarief ' ..terugnormaal.. ' kWh'--.. '\n' ..
+  
+    dz.notify(subject, message, dz.PRIORITY_MEDIUM, dz.SOUND_PERSISTENT, nil, dz.NSS_TELEGRAM)
+  end
+ 
+}
