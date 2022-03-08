@@ -1,0 +1,223 @@
+---------------------------------------------------------------------------
+-- electricity Verbruik & Kosten script (dzVentz-Timer)
+-- 
+-- Convert electricity consumption & cost into Custom Virtual Sensors
+-- Create 3 x Virtual Custom Sensor outputDeviceConsumptionX (Aslabel: kWh)
+-- Create 3 x Virtual Custom Sensor outputDeviceCostX (Aslabel: EUR)
+-- 
+---------------------------------------------------------------------------
+
+local scriptVar = 'ElectricityConsumptionAndCost'
+
+return
+{
+    on =
+    {
+        timer = {'every 1 minutes'}, -- Run this script every 2 minutes
+        httpResponses = {scriptVar .. '*'},
+    },
+
+    logging =
+    {
+        level = domoticz.LOG_ERROR, -- Change to LOG_DEBUG to debug / Change to LOG_ERROR if script is running properly
+        marker = scriptVar,
+    },
+
+    data =
+    {
+        electricity = 
+        {
+            initial = {},
+        },
+    },
+
+    execute = function(dz, item)
+
+        -- Variables -------------------------------------------------------
+        local inputDevice = dz.devices('Stroommeter') -- Input device (P1)
+        local outputDeviceConsumptionToday = dz.devices('Electriciteit Verbruik (vandaag)') -- Output device consumption today
+        local outputDeviceConsumptionMonth = dz.devices('Electriciteit Verbruik (maand)') -- Output device consumption month
+        local outputDeviceConsumptionYear = dz.devices('Electriciteit Verbruik (jaar)') -- Output device consumption year
+        local outputDeviceCostToday = dz.devices('Electriciteit Kosten (vandaag)') -- Output device cost today
+        local outputDeviceCostMonth = dz.devices('Electriciteit Kosten (maand)') -- Output device cost month
+        local outputDeviceCostYear = dz.devices('Electriciteit Kosten (jaar)') -- Output device cost year
+
+        -- Electricity costs per unit ------
+        local costElectricityUnitT1 = 0.15993
+        local costElectricityUnitT2 = 0.14123
+        local costElectricityUnitR1 = 0.15993
+        local costElectricityUnitR2 = 0.14123
+
+        -- Fixed cost per day -------------------------------------------------------------------------------------------------------
+        local costElectricityFixedDay = (0.18903 + 0.73338 - 2.2597) -- (Transport cost + Grid operator cost - Energy tax reduction)
+
+        -- Funtion for consumption retrieval ------------
+        local function ConsumptionGetGraphData(id, delay)
+            local period = 'year'
+
+                electricityURL = dz.settings['Domoticz url'] .. '/json.htm?type=graph&sensor=counter&range=' .. period .. '&idx=' .. id
+                dz.openURL({ url = electricityURL, callback = scriptVar .. '_' .. id}).afterSec(delay or 0)
+
+        end
+
+        -- Function for consumption calculation --
+        local function makeConsumption(device)
+            local currentConsumption
+
+            if device == outputDeviceConsumptionToday then
+                currentConsumption = (dz.data.electricity.consumptionTodayT1) + (dz.data.electricity.consumptionTodayT2)
+                currentConsumption = currentConsumption - (dz.data.electricity.consumptionTodayR1) - (dz.data.electricity.consumptionTodayR2)
+                dz.log('currentConsumption (today): '  .. currentConsumption .. ' kWh', dz.LOG_DEBUG)
+
+            end
+
+            if device == outputDeviceConsumptionMonth then
+                currentConsumption = (dz.data.electricity.consumptionMonthT1) + (dz.data.electricity.consumptionMonthT2)
+                currentConsumption = currentConsumption - (dz.data.electricity.consumptionMonthR1) - (dz.data.electricity.consumptionMonthR2)
+                dz.log('currentConsumption (month): '  .. currentConsumption .. ' kWh', dz.LOG_DEBUG)
+                
+            end
+
+            if device == outputDeviceConsumptionYear then
+                currentConsumption = (dz.data.electricity.consumptionYearT1) + (dz.data.electricity.consumptionYearT2)
+                currentConsumption = currentConsumption - (dz.data.electricity.consumptionYearR1) - (dz.data.electricity.consumptionYearR2)
+                dz.log('currentConsumption (year): '  .. currentConsumption .. ' kWh', dz.LOG_DEBUG)
+
+            end
+
+            return dz.utils.round(currentConsumption, 3)
+
+        end
+
+        -- Function for cost calculation --
+        local function makeCost(device)
+            local currentCost
+
+            if device == outputDeviceCostToday then
+                currentCost = (dz.data.electricity.consumptionTodayT1 * dz.data.electricity.costElectricityUnitT1) + (dz.data.electricity.consumptionTodayT2 * dz.data.electricity.costElectricityUnitT2)
+                currentCost = currentCost - (dz.data.electricity.consumptionTodayR1 * dz.data.electricity.costElectricityUnitR1) - (dz.data.electricity.consumptionTodayR2 * dz.data.electricity.costElectricityUnitR2)
+                currentCost = currentCost + (dz.data.electricity.costElectricityFixedDay)
+                dz.log('currentCost (today): '  .. currentCost .. ' EUR', dz.LOG_DEBUG)
+
+            end
+
+            if device == outputDeviceCostMonth then
+                currentCost = (dz.data.electricity.consumptionMonthT1 * dz.data.electricity.costElectricityUnitT1) + (dz.data.electricity.consumptionMonthT2 * dz.data.electricity.costElectricityUnitT2)
+                currentCost = currentCost - (dz.data.electricity.consumptionMonthR1 * dz.data.electricity.costElectricityUnitR1) - (dz.data.electricity.consumptionMonthR2 * dz.data.electricity.costElectricityUnitR2)
+                currentCost = currentCost + (dz.data.electricity.costElectricityFixedDay * dz.data.electricity.daysCounterMonth)
+                dz.log('currentCost (month): '  .. currentCost .. ' EUR', dz.LOG_DEBUG)
+                
+            end
+
+            if device == outputDeviceCostYear then
+                currentCost = (dz.data.electricity.consumptionYearT1 * dz.data.electricity.costElectricityUnitT1) + (dz.data.electricity.consumptionYearT2 * dz.data.electricity.costElectricityUnitT2)
+                currentCost = currentCost - (dz.data.electricity.consumptionYearR1 * dz.data.electricity.costElectricityUnitR1) - (dz.data.electricity.consumptionYearR2 * dz.data.electricity.costElectricityUnitR2)
+                currentCost = currentCost + (dz.data.electricity.costElectricityFixedDay * dz.data.electricity.daysCounterYear)
+                dz.log('currentCost (year): '  .. currentCost .. ' EUR', dz.LOG_DEBUG)
+
+            end
+
+            return dz.utils.round(currentCost, 2)
+
+        end
+
+        -- Function for updating a Virtual Custom Sensor --
+        local function updateCustomSensor(device, value) 
+            local currentValue = device.rawData[1]
+
+            if value ~= tonumber(currentValue) then -- Update only necessary when new value differs from the previous one
+                device.updateCustomSensor(value)
+                dz.log(device.name .. " ==>> Previous value: " .. currentValue .. " ; New value: " .. value,dz.LOG_DEBUG)
+            
+            end
+
+        end
+
+        -- Function for JSON processing --
+        local function ProcessJSON(t)
+            local todayVolumeT1, todayVolumeT2, todayVolumeR1, todayVolumeR2 = 0, 0, 0, 0
+            local monthVolumeT1, monthVolumeT2, monthVolumeR1, monthVolumeR2 = 0, 0, 0, 0
+            local yearVolumeT1, yearVolumeT2, yearVolumeR1, yearVolumeR2 = 0, 0, 0, 0
+            local daysCounterMonth = 0
+            local daysCounterYear = 0
+            local currentDayIdentifier = dz.time.rawDate:sub(1,10)
+            local currentMonthIdentifier = dz.time.rawDate:sub(1,4) .. '%-' .. dz.time.rawDate:sub(6,7)
+            local day = 86400 -- (24 * 60 * 60)
+
+            for index, inputDevice in ipairs(t) do
+
+                if inputDevice.d == currentDayIdentifier then
+                    todayVolumeT1 = todayVolumeT1 + inputDevice.v
+                    todayVolumeT2 = todayVolumeT2 + inputDevice.v2
+                    todayVolumeR1 = todayVolumeR1 + inputDevice.r1
+                    todayVolumeR2 = todayVolumeR2 + inputDevice.r2
+
+                end
+
+                if inputDevice.d:match(currentMonthIdentifier) then
+                    monthVolumeT1 = monthVolumeT1 + inputDevice.v
+                    monthVolumeT2 = monthVolumeT2 + inputDevice.v2
+                    monthVolumeR1 = monthVolumeR1 + inputDevice.r1
+                    monthVolumeR2 = monthVolumeR2 + inputDevice.r2
+                    daysCounterMonth = daysCounterMonth + 1
+
+                end
+
+                if inputDevice.d:match(dz.time.year) then
+                    yearVolumeT1 = yearVolumeT1 + inputDevice.v
+                    yearVolumeT2 = yearVolumeT2 + inputDevice.v2
+                    yearVolumeR1 = yearVolumeR1 + inputDevice.r1
+                    yearVolumeR2 = yearVolumeR2 + inputDevice.r2
+                    daysCounterYear = daysCounterYear + 1
+
+                end
+
+            end
+
+            dz.log('daysCounterMonth: '  .. daysCounterMonth, dz.LOG_DEBUG)
+            dz.log('daysCounterYear: '  .. daysCounterYear, dz.LOG_DEBUG)
+
+            dz.data.electricity.consumptionTodayT1 = todayVolumeT1
+            dz.data.electricity.consumptionTodayT2 = todayVolumeT2
+            dz.data.electricity.consumptionTodayR1 = todayVolumeR1
+            dz.data.electricity.consumptionTodayR2 = todayVolumeR2
+            dz.data.electricity.consumptionMonthT1 = monthVolumeT1
+            dz.data.electricity.consumptionMonthT2 = monthVolumeT2
+            dz.data.electricity.consumptionMonthR1 = monthVolumeR1
+            dz.data.electricity.consumptionMonthR2 = monthVolumeR2
+            dz.data.electricity.consumptionYearT1 = yearVolumeT1
+            dz.data.electricity.consumptionYearT2 = yearVolumeT2
+            dz.data.electricity.consumptionYearR1 = yearVolumeR1
+            dz.data.electricity.consumptionYearR2 = yearVolumeR2
+            dz.data.electricity.costElectricityUnitT1 = costElectricityUnitT1
+            dz.data.electricity.costElectricityUnitT2 = costElectricityUnitT2
+            dz.data.electricity.costElectricityUnitR1 = costElectricityUnitR1
+            dz.data.electricity.costElectricityUnitR2 = costElectricityUnitR2
+            dz.data.electricity.costElectricityFixedDay = (costElectricityFixedDay or 0)
+            dz.data.electricity.daysCounterMonth = daysCounterMonth
+            dz.data.electricity.daysCounterYear = daysCounterYear
+
+        end
+
+        -- Main -----------------------------------
+        if item.isHTTPResponse and item.isJSON then
+                ProcessJSON(item.json.result)
+
+        elseif item.isTimer or item.isDevice then
+            ConsumptionGetGraphData(inputDevice.id, 0)
+
+            updateCustomSensor(outputDeviceConsumptionToday, makeConsumption(outputDeviceConsumptionToday))
+            updateCustomSensor(outputDeviceConsumptionMonth, makeConsumption(outputDeviceConsumptionMonth))
+            updateCustomSensor(outputDeviceConsumptionYear, makeConsumption(outputDeviceConsumptionYear))
+
+            updateCustomSensor(outputDeviceCostToday, makeCost(outputDeviceCostToday))
+            updateCustomSensor(outputDeviceCostMonth, makeCost(outputDeviceCostMonth))
+            updateCustomSensor(outputDeviceCostYear, makeCost(outputDeviceCostYear))
+
+        else
+            dz.log('Error retrieving data. Result is: ' .. item.statusText ..' ; Response is: ' .. item.data,LOG_ERROR)
+
+        end
+
+    end
+}
