@@ -1,0 +1,35 @@
+---------------------------------------------------------------------------
+-- electricity Opbrengst teruglevering script (dzVentz-Timer)
+-- 
+-- gebruik https://github.com/BazemanKM/Domoticz-Mysensors.org-/blob/master/scripts/dzVents/scripts/Meterstanden%20uit%20P1 voor Teruglevering
+
+-- Create 2 x Virtual Custom Sensor outputDeviceCostX (Aslabel: EUR)
+-- 
+---------------------------------------------------------------------------
+
+return {
+ on = { timer = { "every 5 minutes" }},
+
+	execute = function(dz)
+	-- Devices
+	local inputDevice = dz.devices('Teruglevering').counterToday -- Input device
+	local inputDeviceTotaal = dz.devices('Teruglevering').counter -- Input device
+	local outputDevice = dz.devices('Opbrengst teruglevering') -- Output device cost today
+	local outputDeviceTotaal = dz.devices('Opbrengst teruglevering Totaal') -- Output device cost today
+
+	-- Eenheidsprijs in Euro's / Kwh - M3 local kwhPrijs
+		if (dz.time == 'Between 23:00 and 07:00') or (dz.day == 'Saturday') or (dz.day == 'Sunday') then
+			kwhPrijs = 0.14123 -- Daltarief
+		else kwhPrijs = 0.15993 -- Normaal tarief
+		end
+	
+	-- Kosten berekenen
+	local kwhKosten = dz.utils.round(kwhPrijs * inputDevice,2) -- rounded to two decimals and replace dot by comma
+	local kwhKosten2 = dz.utils.round(kwhPrijs * inputDeviceTotaal,2) -- rounded to two decimals and replace dot by comma
+	
+	-- Kosten updaten
+	outputDevice.updateCustomSensor(kwhKosten)
+	outputDeviceTotaal.updateCustomSensor(kwhKosten2)
+	
+	end
+}
