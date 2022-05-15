@@ -1,0 +1,39 @@
+return {
+	on = {
+		timer = {'18 minutes before sunset','18 minutes after sunset'},
+		devices = {'Schuifpui','Bijkeuken achter'}
+		
+	    },
+	
+	logging = {
+            level = domoticz.LOG_ERROR, -- LOG_DEBUG or LOG_ERROR
+            marker = "Sproeien achter: "
+        },
+    
+    execute = function(domoticz, item, info, timer, device)
+        local deur = domoticz.devices('Schuifpui')
+        local deur2 = domoticz.devices('Bijkeuken achter')
+        local Sproeier = domoticz.devices('Besproeiing Achter')
+        local Time = require('Time')
+        local currentTime = Time()
+        
+        if currentTime.matchesRule("18 minutes before sunset") and not Sproeier.active and deur.state == 'Closed' and deur2.state == 'Closed' then
+            Sproeier.switchOn()
+            domoticz.notify("Sproeier", "Sproeier achter aan", domoticz.PRIORITY_NORMAL,domoticz.SOUND_DEFAULT, "" , "")
+            
+        elseif (deur.state == 'Open' or deur2.state == 'Open') and currentTime.matchesRule("between 18 minutes before sunset and 18 minutes after sunset") and Sproeier.active then
+            Sproeier.switchOff()
+            domoticz.notify("Sproeier", "Sproeier achter uit, er is een deur open", domoticz.PRIORITY_NORMAL,domoticz.SOUND_DEFAULT, "" , "")
+            
+        elseif deur.state == 'Closed' and deur2.state == 'Closed' and currentTime.matchesRule("between 17 minutes before sunset and 17 minutes after sunset") and not Sproeier.active then
+            Sproeier.switchOn()
+            domoticz.notify("Sproeier", "Sproeier achter aan, deuren zijn weer dicht", domoticz.PRIORITY_NORMAL,domoticz.SOUND_DEFAULT, "" , "")   
+            
+        elseif currentTime.matchesRule("18 minutes after sunset") and Sproeier.active then
+            Sproeier.switchOff()
+            domoticz.notify("Sproeier", "Sproeier achter uit", domoticz.PRIORITY_NORMAL,domoticz.SOUND_DEFAULT, "" , "")
+            
+        end
+    end
+
+}
