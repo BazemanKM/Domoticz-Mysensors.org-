@@ -29,6 +29,9 @@ return {
         elseif currentTime.matchesRule("between 22:45 and 6:15") and not myKeuken.active then
             lightAanrecht.switchOff()
             lightKeukenkast.switchOff()
+        elseif currentTime.matchesRule("between 6:16 and 20 minutes after sunrise ") then
+            lightAanrecht.switchOff()
+            lightKeukenkast.switchOff()
         
         end
     end
