@@ -1,0 +1,24 @@
+return {
+    on = {
+            devices = {'Schuifpui','Bijkeuken achter'}
+        
+         },
+    
+    execute = function(domoticz, item, info, timer, device, group)
+
+        local deur = domoticz.devices('Schuifpui')
+        local deur2 = domoticz.devices('Bijkeuken achter')
+        local lightBuitenlampen = domoticz.devices('Buitenlampen achter')
+        local Time = require('Time')
+        local currentTime = Time()
+        
+        if (deur.state == 'Open' or deur2.state == 'Open') and domoticz.time.isNightTime then
+            lightBuitenlampen.switchOn()    
+        
+        elseif deur.state == 'Closed' and deur2.state == 'Closed' then
+            lightBuitenlampen.switchOff()    
+            
+        end
+        
+    end
+}
