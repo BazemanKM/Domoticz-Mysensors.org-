@@ -1,0 +1,29 @@
+return {
+    on = {
+            timer = {'20 minutes after sunset','20 minutes before sunrise','at 22:01','at 6:15'},
+            devices = {'Bijkeuken voor'}
+        
+         },
+    
+    execute = function(domoticz, item, info, timer, device, group)
+        
+        local motionDetected = domoticz.devices('Bijkeuken voor')
+        local lightBuiten = domoticz.devices('Buitenlamp bijkeuken')
+        local Time = require('Time')
+        local currentTime = Time()
+
+        if currentTime.matchesRule("between 20 minutes after sunset and 22:00") then
+            lightBuiten.switchOn()
+        elseif currentTime.matchesRule("between 22:01 and 20 minutes before sunrise") and motionDetected.active and not lightBuiten.active then
+            lightBuiten.switchOn()
+        elseif currentTime.matchesRule("between 22:01 and 20 minutes before sunrise") and not motionDetected.active and lightBuiten.active then
+            lightBuiten.switchOff()
+        elseif currentTime.matchesRule("between 20 minutes before sunrise and 20 minutes after sunset") then
+            lightBuiten.switchOff()     
+        elseif currentTime.matchesRule("between 6:15 and 20 minutes before sunrise") then
+            lightBuiten.switchOn()
+        
+        end
+        
+    end
+}
