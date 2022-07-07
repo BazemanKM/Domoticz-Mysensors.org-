@@ -2,6 +2,8 @@ curl -s https://raw.githubusercontent.com/sbfspot/sbfspot-config/master/sbfspot-
 
 sudo nano /usr/local/bin/sbfspot.3/SBFspot.cfg
 
+Zet Excel export op 1
+
 /usr/local/bin/sbfspot.3/SBFspot -v -finq –nocsv
 
 cd /usr/local/bin/sbfspot.3
