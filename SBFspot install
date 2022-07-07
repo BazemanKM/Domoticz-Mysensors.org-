@@ -1,0 +1,22 @@
+curl -s https://raw.githubusercontent.com/sbfspot/sbfspot-config/master/sbfspot-config | sudo bash -s 3.7.1
+
+sudo nano /usr/local/bin/sbfspot.3/SBFspot.cfg
+
+/usr/local/bin/sbfspot.3/SBFspot -v -finq –nocsv
+
+cd /usr/local/bin/sbfspot.3
+
+sudo wget https://github.com/SBFspot/SBFspot/releases/download/V3.5.2/SBFspotUploadDaemon_buster
+
+sudo chmod +x /usr/local/bin/sbfspot.3/SBFspotUploadDaemon_buster
+
+sudo mv /usr/local/bin/sbfspot.3/SBFspotUploadDaemon_buster 
+
+/usr/local/bin/sbfspot.3/SBFspotUploadDaemon
+
+sudo cp /home/pi/SBFspotUpload.cfg /usr/local/bin/sbfspot.3/SBFspotUpload.cfg
+
+sudo nano /etc/rc.local
+
+#Start SBFspotUploadDaemon
+sudo /usr/local/bin/sbfspot.3/SBFspotUploadDaemon
