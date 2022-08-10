@@ -1,0 +1,126 @@
+if (!context.global.heishamon) {
+  context.global.heishamon = {};
+}
+
+// write down the Home Automation applications used
+// Possible values: Domoticz, InfluxDB, openHAB, HomeAssistant
+// comma seperated and case sensitive
+context.global.heishamon.HAapplication = "Domoticz";
+
+
+//This is the overview of sensors which has to be sent to the Home Automation system
+context.global.heishamon.SensorMapping = [
+        // ["name of topic", "IDx in Domoticz/Name in Home Assistant/ ?? openHAB ??"]
+            ["Heatpump_State", 170, "Switch"],
+            ["Pump_Flow", 42],
+            ["Force_DHW_State", 172, "Switch"], //DHW status (20=off, 10=on 0=unknown)
+        //    ["Quiet_Mode_Schedule", null, "Switch"],
+            ["Operating_Mode_State", 171, "Selector Switch"], //7 levels - (0=Heat only, 10=Cool only, 20=Auto, 30=DHW only, 40=Heat+DHW, 50=Cool+DHW, 60=Auto+DHW)
+            ["Main_Inlet_Temp", null],
+            ["Main_Outlet_Temp", null], 
+            ["Main_Target_Temp", null],
+            ["Compressor_Freq", 214],
+            ["DHW_Target_Temp", 173],
+            ["DHW_Temp", 80],
+            ["Operations_Hours", 82],
+            ["Operations_Counter", 81],
+        //    ["Main_Schedule_State", null, "Switch"],
+            ["Outside_Temp", 208],
+            ["Heat_Energy_Production", 33],
+            ["Heat_Energy_Consumption", 34],
+        //    ["Powerful_Mode_Time", null, "Selector Switch"], //  4 levels -- 0= off - 10= 30 Minute - 20= 60 Minute - 30= 90 Minute //0= off, 30 = level 3
+        //    ["Quiet_Mode_Level", 6030, "Selector Switch"], // 4 levels -- 0= off - 10= Silent 1 - 20= Silent 2 - 30= Silent 3
+        //    ["Holiday_Mode_State", null, "Switch"],
+            ["ThreeWay_Valve_State", 313, "Selector Switch"], // 2 levels -- 0=Room, 10=DHW
+            ["Outside_Pipe_Temp", 312],
+        //    ["DHW_Heat_Delta", null],
+        //    ["Heat_Delta", null],
+        //    ["Cool_Delta", null],
+        //    ["DHW_Holiday_Shift_Temp", null],
+        //    ["Defrosting_State", null, "Switch"],
+            ["Z1_Heat_Request_Temp", 174, "Thermostat"],
+        //    ["Z1_Cool_Request_Temp", null],
+        //    ["Z1_Heat_Curve_Target_High_Temp", null],
+        //    ["Z1_Heat_Curve_Target_Low_Temp", null],
+        //    ["Z1_Heat_Curve_Outside_High_Temp", null],
+        //    ["Z1_Heat_Curve_Outside_Low_Temp", null],
+        //    ["Room_Thermostat_Temp", null],
+        //    ["Z2_Heat_Request_Temp", null],
+        //    ["Z2_Cool_Request_Temp", null],
+        //    ["Z1_Water_Temp", null],
+        //    ["Z2_Water_Temp", null],
+        //    ["Cool_Energy_Production", null],
+        //    ["Cool_Energy_Consumption", null],
+            ["DHW_Energy_Production", 32],
+            ["DHW_Energy_Consumption", 31],
+        //    ["Z1_Water_Target_Temp", null],
+        //    ["Z2_Water_Target_Temp", null],
+        //    ["Error", null],
+        //    ["Room_Holiday_Shift_Temp", null],
+        //    ["Buffer_Temp", null],
+            ["Solar_Temp", 79],
+        //    ["Pool_Temp", null],
+            ["Main_Hex_Outlet_Temp", null],
+        //    ["Discharge_Temp", null],
+        //    ["Inside_Pipe_Temp", null],
+        //    ["Defrost_Temp", null],
+            ["Eva_Outlet_Temp", null],
+            ["Bypass_Outlet_Temp", null],
+            ["Ipm_Temp", null],
+        //    ["Z1_Temp", null],
+        //    ["Z2_Temp", null],
+        //    ["DHW_Heater_State", null],
+        //    ["Room_Heater_State", null],
+        //    ["Internal_Heater_State", null],
+        //    ["External_Heater_State", null],
+        //    ["Fan1_Motor_Speed", null],
+        //    ["Fan2_Motor_Speed", null],
+        //    ["High_Pressure", null],
+        //    ["Pump_Speed", null],
+        //    ["Low_Pressure", null],
+        //    ["Compressor_Current", null],
+        //    ["Force_Heater_State", null, "Switch"],
+        //    ["Sterilization_State", null, "Switch"],
+        //    ["Sterilization_Temp", null],
+        //    ["Sterilization_Max_Time", null],
+        //    ["Z1_Cool_Curve_Target_High_Temp", null],
+        //    ["Z1_Cool_Curve_Target_Low_Temp", null],
+        //    ["Z1_Cool_Curve_Outside_High_Temp", null],
+        //    ["Z1_Cool_Curve_Outside_Low_Temp", null],
+        //    ["Heating_Mode", null],
+        //    ["Heating_Off_Outdoor_Temp", null],
+        //    ["Heater_On_Outdoor_Temp", null],
+        //    ["Heat_To_Cool_Temp", null],
+        //    ["Cool_To_Heat_Temp", null],
+        //    ["Cooling_Mode", null],
+        //    ["Heat_To_Cool_Temp", null],
+        //    ["Z2_Heat_Curve_Target_High_Temp", null],
+        //    ["Z2_Heat_Curve_Target_Low_Temp", null],
+        //    ["Z2_Heat_Curve_Outside_High_Temp", null],
+        //    ["Z2_Heat_Curve_Outside_Low_Temp", null],
+        //    ["Z2_Cool_Curve_Target_High_Temp", null],
+        //    ["Z2_Cool_Curve_Target_Low_Temp", null],
+        //    ["Z2_Cool_Curve_Outside_High_Temp", null],
+        //    ["Z2_Cool_Curve_Outside_Low_Temp", null],
+        //    ["Room_Heater_Operations_Hours", null],
+        //    ["DHW_Heater_Operations_Hours", null]
+    ];
+    
+context.global.heishamon.ActionMapping = [
+    // actioncommand, type, "IDx in Domoticz/Name in Home Assistant/ ?? openHAB ??" 
+    ["SetHeatpump", "Switch", 170],
+ //   ["SetHoliday", "Switch", null],
+ //   ["SetQuietMode", "Selector Switch", null],
+ //   ["SetPowerfull", "Selector Switch", null],
+    ["SetZ1HeatRequestTemperature", "Thermostat", 174],
+ //   ["SetZ1CoolRequestTemperature", "Thermostat", null],
+ //   ["SetZ2HeatRequestTemperature", "Thermostat", null],
+ //   ["SetZ2CoolRequestTemperature", "Thermostat", null],
+    ["SetOperationMode", "Selector Switch", 171],
+    ["SetForceDHW", "Switch", 172],
+    ["SetDHWTemp", "Thermostat", 173],
+ //   ["SetCoolTemp", "Thermostat", null],
+ //  ["SetForceDefrost", "Switch", null],
+ //   ["SetForceSterilization", "Switch", null]
+];
+return msg;
