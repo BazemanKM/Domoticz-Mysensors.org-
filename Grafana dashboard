@@ -884,6 +884,7 @@
               "type": "fill"
             }
           ],
+          "hide": true,
           "measurement": "Temperature",
           "orderByTime": "ASC",
           "policy": "default",
@@ -2686,5 +2687,5 @@
   "timezone": "",
   "title": "Huize Oldenburger",
   "uid": "r50IjDZgz",
-  "version": 77
+  "version": 9
 }
